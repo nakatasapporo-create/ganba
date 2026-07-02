@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>がんばったことポスターメーカー</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Rounded Mplus) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Mammoth.js for Word (.docx) file reading -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <!-- SheetJS for Excel (.xlsx / .xls) file reading -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- html2canvas and jsPDF for reliable PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'M PLUS Rounded 1c', "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+            background-color: #f0fdf4; /* 薄い緑色で目に優しい */
+        }
+        /* 印刷用スタイル設定 */
+        @media print {
+            body {
+                background-color: #ffffff;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-area {
+                width: 210mm;
+                height: 297mm;
+                padding: 10mm;
+                margin: 0;
+                box-shadow: none;
+                background-color: #ffffff !important;
+                border: none !important;
+            }
+            /* ページ境界の設定 */
+            @page {
+                size: A4 portrait;
+                margin: 0;
+            }
+            /* 印刷時にドラッグ＆リサイズの補助マークを強制非表示 */
+            .drag-handle {
+                display: none !important;
+            }
+            .editable-preview {
+                outline: none !important;
+                border: none !important;
+            }
+        }
+        /* プレビューエリアの縦横比をA4に近づける */
+        .poster-preview {
+            aspect-ratio: 1 / 1.414;
+            max-width: 100%;
+        }
+        /* 直接編集可能エリアのホバー効果 */
+        .editable-preview:hover {
+            background-color: rgba(254, 243, 199, 0.6); /* 薄い黄色のハイライト */
+            outline: 2px dashed #d97706;
+            cursor: text;
+        }
+        .editable-preview:focus {
+            background-color: rgba(254, 243, 199, 0.9);
+            outline: 2px solid #d97706;
+        }
+
+        /* 移動・拡大対応の枠スタイリング */
+        .movable-resizable-box {
+            position: absolute;
+            transition: border-color 0.15s ease, background-color 0.15s ease;
+        }
+        .movable-resizable-box:hover {
+            border: 2px dashed #f59e0b; /* オレンジの破線 */
+            background-color: rgba(254, 243, 199, 0.2);
+        }
+        /* 現在選択されている要素を示す枠線 */
+        .box-selected {
+            border: 2px solid #3b82f6 !important;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+        }
+        
+        /* ドラッグ＆ドロップ中のオーバーレイ効果 */
+        .drag-over-effect {
+            border-color: #10b981 !important;
+            background-color: rgba(16, 185, 129, 0.1) !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12">
+
+    <!-- ヘッダー (印刷時は非表示) -->
+    <header class="bg-emerald-600 text-white p-4 shadow-md no-print">
+        <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <h1 class="text-2xl sm:text-3xl font-black flex items-center gap-2">
+                <span class="text-yellow-300 text-4xl">★</span> 
+                <span>がんばったことポスターメーカー</span>
+            </h1>
+            <p class="text-sm bg-emerald-700 px-3 py-1 rounded-full font-bold">
+                とくべつしえんがっこう むけ
+            </p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 mt-6 max-w-7xl">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- 左側：設定・入力パネル (印刷時は非表示) -->
+            <div class="lg:col-span-5 space-y-6 no-print">
+                
+                <!-- ステップ1: 指導記録から文章を作成 -->
+                <div class="bg-white p-6 rounded-3xl shadow-md border-4 border-emerald-200">
+                    <h2 class="text-lg font-bold text-emerald-800 mb-3 flex items-center gap-2">
+                        <span class="bg-emerald-100 text-emerald-700 w-8 h-8 rounded-full flex items-center justify-center font-bold">1</span>
+                        <span>指導記録を読み込んで自動作成</span>
+                    </h2>
+                    <p class="text-xs text-gray-600 mb-4 leading-relaxed">
+                        先生用の指導メモ、<strong>Wordファイル（.docx）</strong>、または<strong>Excelファイル（.xlsx / .xls）</strong>を読み込ませるだけで、AI（Gemini）が児童向けに分かりやすい文章を<strong>3点（それぞれ100字程度）</strong>自動作成します。
+                    </p>
+
+                    <!-- ファイルアップロード -->
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-gray-700 mb-1">① 指導記録ファイルを読み込む（Word・Excel・テキスト対応）</label>
+                        <div class="flex items-center justify-center w-full">
+                            <label class="flex flex-col items-center justify-center w-full h-28 border-2 border-emerald-300 border-dashed rounded-xl cursor-pointer bg-emerald-50 hover:bg-emerald-100 transition-colors">
+                                <div class="flex flex-col items-center justify-center pt-2 pb-2 text-center px-4">
+                                    <i class="fa-solid fa-file-invoice text-emerald-500 text-3xl mb-1"></i>
+                                    <p class="text-xs text-emerald-700 font-bold">ファイルを選択、またはドロップ</p>
+                                    <p class="text-[10px] text-emerald-600 mt-1">Word (.docx) / Excel (.xlsx, .xls) / テキスト (.txt)</p>
+                                </div>
+                                <input type="file" id="fileInput" accept=".txt,.docx,.xlsx,.xls" class="hidden" />
+                            </label>
+                        </div>
+                        <p id="fileNameDisplay" class="text-xs text-emerald-800 mt-2 italic font-bold hidden"></p>
+                    </div>
+
+                    <!-- 直接入力 -->
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-gray-700 mb-1">② 記録の直接入力・読み込みテキストの確認</label>
+                        <textarea id="teacherMemo" rows="4" placeholder="【例】毎日朝の運動（グラウンド走）をサボらず最後まで粘り強く走りきれるようになりました。お友達におもちゃを貸してあげる時には、自分から「どうぞ」と手を添えて言えるようになり、仲良く関わる姿が増えました。図工の時間では大好きな電車を描きました。" class="w-full p-3 text-sm border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+                    </div>
+
+                    <!-- 変換ボタン -->
+                    <button id="btnGenerate" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-transform active:scale-95 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles animate-pulse"></i>
+                        <span>AI（Gemini）でポスター文章を自動作成</span>
+                    </button>
+
+                    <!-- AIローディング表示 -->
+                    <div id="aiLoading" class="hidden mt-4 text-center p-3 bg-emerald-50 rounded-2xl border border-emerald-100">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-emerald-500 border-t-transparent mb-2"></div>
+                        <p class="text-xs text-emerald-700 font-bold">児童向けのやさしい言葉（3つのエピソード）に変換中です...</p>
+                    </div>
+                </div>
+
+                <!-- ポスターをかざるイラストスタンプ機能 -->
+                <div class="bg-white p-6 rounded-3xl shadow-md border-4 border-pink-200">
+                    <h2 class="text-lg font-bold text-pink-800 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-star text-pink-500 animate-spin" style="animation-duration: 4s;"></i>
+                        <span>ポスターをイラストでかざる</span>
+                    </h2>
+                    <p class="text-xs text-gray-600 mb-3 leading-relaxed">
+                        スタンプをクリックしてポスターをデコレーションしましょう！貼ったイラストは、<strong>ドラッグで移動や拡大縮小、消去</strong>が自由にできます。
+                    </p>
+
+                    <!-- プリセットスタンプ -->
+                    <div class="mb-4">
+                        <label class="block text-[11px] font-bold text-gray-700 mb-1">① えもじスタンプをポンとはる</label>
+                        <div class="grid grid-cols-8 gap-2">
+                            <button onclick="addEmojiStamp('💮')" class="p-1.5 bg-red-50 hover:bg-red-100 rounded-lg text-xl border border-red-200 shadow-sm" title="はなまる">💮</button>
+                            <button onclick="addEmojiStamp('🌸')" class="p-1.5 bg-pink-50 hover:bg-pink-100 rounded-lg text-xl border border-pink-200 shadow-sm" title="さくら">🌸</button>
+                            <button onclick="addEmojiStamp('🏆')" class="p-1.5 bg-yellow-50 hover:bg-yellow-100 rounded-lg text-xl border border-yellow-200 shadow-sm" title="トロフィー">🏆</button>
+                            <button onclick="addEmojiStamp('🏅')" class="p-1.5 bg-amber-50 hover:bg-amber-100 rounded-lg text-xl border border-amber-200 shadow-sm" title="メダル">🏅</button>
+                            <button onclick="addEmojiStamp('👑')" class="p-1.5 bg-yellow-50 hover:bg-yellow-100 rounded-lg text-xl border border-yellow-200 shadow-sm" title="クラウン">👑</button>
+                            <button onclick="addEmojiStamp('🎨')" class="p-1.5 bg-purple-50 hover:bg-purple-100 rounded-lg text-xl border border-purple-200 shadow-sm" title="アート">🎨</button>
+                            <button onclick="addEmojiStamp('🎵')" class="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-lg text-xl border border-blue-200 shadow-sm" title="おんがく">🎵</button>
+                            <button onclick="addEmojiStamp('🏃')" class="p-1.5 bg-green-50 hover:bg-green-100 rounded-lg text-xl border border-green-200 shadow-sm" title="はしる">🏃</button>
+                            <button onclick="addEmojiStamp('🎈')" class="p-1.5 bg-rose-50 hover:bg-rose-100 rounded-lg text-xl border border-rose-200 shadow-sm" title="ふうせん">🎈</button>
+                            <button onclick="addEmojiStamp('🦖')" class="p-1.5 bg-emerald-50 hover:bg-emerald-100 rounded-lg text-xl border border-emerald-200 shadow-sm" title="きょうりゅう">🦖</button>
+                            <button onclick="addEmojiStamp('⭐')" class="p-1.5 bg-yellow-50 hover:bg-yellow-100 rounded-lg text-xl border border-yellow-200 shadow-sm" title="ほし">⭐</button>
+                            <button onclick="addEmojiStamp('🤝')" class="p-1.5 bg-teal-50 hover:bg-teal-100 rounded-lg text-xl border border-teal-200 shadow-sm" title="なかよし">🤝</button>
+                        </div>
+                    </div>
+
+                    <!-- 自前イラストのアップロード -->
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-700 mb-1">② 自分で用意したイラスト画像を追加する</label>
+                        <div class="flex items-center justify-center w-full">
+                            <label class="flex items-center justify-center w-full px-4 py-2 border-2 border-pink-300 border-dashed rounded-xl cursor-pointer bg-pink-50 hover:bg-pink-100 transition-colors">
+                                <span class="text-xs text-pink-700 font-bold flex items-center gap-2">
+                                    <i class="fa-solid fa-file-image text-pink-500"></i>
+                                    イラストをアップロード
+                                </span>
+                                <input type="file" id="stampImageInput" accept="image/*" class="hidden" />
+                            </label>
+                        </div>
+                        <p class="text-[10px] text-gray-500 mt-1">※背景が透きとおった画像（透過PNGなど）を使うとよりきれいに飾れます！</p>
+                    </div>
+                </div>
+
+                <!-- ステップ2: ポスターの情報を手動調整 -->
+                <div class="bg-white p-6 rounded-3xl shadow-md border-4 border-yellow-200">
+                    <h2 class="text-lg font-bold text-yellow-800 mb-3 flex items-center gap-2">
+                        <span class="bg-yellow-100 text-yellow-700 w-8 h-8 rounded-full flex items-center justify-center font-bold">2</span>
+                        <span>ここで直接編集 ＆ しゃしんを入れる</span>
+                    </h2>
+                    <p class="text-xs text-gray-600 mb-4 leading-relaxed">
+                        各文章は、下の入力欄、または<strong>右側のポスター画面を直接クリック</strong>しても、どちらでも編集・書き換えが可能です！
+                    </p>
+
+                    <div class="space-y-4">
+                        <!-- 名前 -->
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">児童のなまえ</label>
+                            <input type="text" id="inputName" value="やまだ たろう" class="w-full p-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                        </div>
+
+                        <!-- タイトル -->
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">ポスタータイトル</label>
+                            <input type="text" id="inputTitle" value="がんばったことポスター" class="w-full p-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                        </div>
+
+                        <!-- がんばったこと 1 -->
+                        <div class="p-3 bg-rose-50 rounded-xl border border-rose-100">
+                            <span class="text-xs font-bold text-rose-600 block mb-1">🔴 がんばったこと ①</span>
+                            <textarea id="inputText1" rows="3" class="w-full p-2 border border-rose-200 rounded-lg text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-rose-400">げきのれんしゅうをがんばりました！
+「ノンタンのブランコ」のせりふを、しっかりおぼえて、じぶんのばんでおおきなこえでおはなしできましたね。げきをたのしむすがたは、はなまるでした！</textarea>
+                            
+                            <!-- 画像1 -->
+                            <div class="mt-2">
+                                <label class="block text-[10px] font-bold text-gray-600 mb-1">① しゃしんを選択（ドラッグ＆ドロップでもOK）</label>
+                                <input type="file" id="imageInput1" accept="image/*" class="text-xs block w-full text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100" />
+                            </div>
+                        </div>
+
+                        <!-- がんばったこと 2 -->
+                        <div class="p-3 bg-sky-50 rounded-xl border border-sky-100">
+                            <span class="text-xs font-bold text-sky-600 block mb-1">🔵 がんばったこと ②</span>
+                            <textarea id="inputText2" rows="3" class="w-full p-2 border border-sky-200 rounded-lg text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-sky-400">おんがくのじかんに、がっきのえんそうをがんばりましたね！
+マレットをしっかりてにもって、「トントントン」ときれいなおとをだせました。あきらめずにさいごまでやりとげて、とってもかっこよかったです！</textarea>
+                            
+                            <!-- 画像2 -->
+                            <div class="mt-2">
+                                <label class="block text-[10px] font-bold text-gray-600 mb-1">② しゃしんを選択</label>
+                                <input type="file" id="imageInput2" accept="image/*" class="text-xs block w-full text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100" />
+                            </div>
+                        </div>
+
+                        <!-- がんばったこと 3 -->
+                        <div class="p-3 bg-amber-50 rounded-xl border border-amber-100">
+                            <span class="text-xs font-bold text-amber-600 block mb-1">🟡 がんばったこと ③</span>
+                            <textarea id="inputText3" rows="3" class="w-full p-2 border border-amber-200 rounded-lg text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-amber-400">ずこうのじかんに、だいすきなでんしゃのえをかきましたね！
+いろんなクレヨンをつかって、カラフルでかっこいいでんしゃをかけました。おともだちに「みせて」といわれて、うれしそうにみせていましたね！</textarea>
+                            
+                            <!-- 画像3 -->
+                            <div class="mt-2">
+                                <label class="block text-[10px] font-bold text-gray-600 mb-1">③ しゃしんを選択</label>
+                                <input type="file" id="imageInput3" accept="image/*" class="text-xs block w-full text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100" />
+                            </div>
+                        </div>
+
+                        <!-- テーマ切り替え -->
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">ポスターのデザインカラー</label>
+                            <div class="grid grid-cols-4 gap-2">
+                                <button onclick="changeTheme('theme-green')" class="py-1 px-2 text-xs font-bold rounded-lg border-2 border-emerald-400 bg-emerald-50 text-emerald-800">グリーン</button>
+                                <button onclick="changeTheme('theme-blue')" class="py-1 px-2 text-xs font-bold rounded-lg border-2 border-sky-200 bg-sky-50 text-sky-800">ブルー</button>
+                                <button onclick="changeTheme('theme-pink')" class="py-1 px-2 text-xs font-bold rounded-lg border-2 border-pink-200 bg-pink-50 text-pink-800">ピンク</button>
+                                <button onclick="changeTheme('theme-orange')" class="py-1 px-2 text-xs font-bold rounded-lg border-2 border-orange-200 bg-orange-50 text-orange-800">オレンジ</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ステップ3: 出力 -->
+                <div class="bg-white p-6 rounded-3xl shadow-md border-4 border-indigo-200">
+                    <h2 class="text-lg font-bold text-indigo-800 mb-3 flex items-center gap-2">
+                        <span class="bg-indigo-100 text-indigo-700 w-8 h-8 rounded-full flex items-center justify-center font-bold">3</span>
+                        <span>PDFファイルに保存する</span>
+                    </h2>
+                    <p class="text-xs text-gray-600 mb-4 leading-relaxed">
+                        ポスターを教室に掲示したり、保護者に渡すためのPDFデータをワンクリックで作成して端末に直接保存します。
+                    </p>
+                    <button id="btnPrint" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-transform active:scale-95 flex items-center justify-center gap-2 text-lg">
+                        <i class="fa-solid fa-file-pdf"></i>
+                        <span>PDFを保存する</span>
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- 右側：ポスターのプレビュー表示エリア（直接クリックしてその場編集 ＆ 移動拡大対応） -->
+            <div class="lg:col-span-7 flex flex-col items-center">
+                <div class="w-full sticky top-4">
+                    <div class="flex flex-col mb-2 no-print gap-1">
+                        <span class="text-sm font-bold text-emerald-800 flex items-center gap-1">
+                            <i class="fa-solid fa-arrows-up-down-left-right"></i>
+                            <span>ポスタープレビュー（カード枠のドラッグで自由に移動・拡大！）</span>
+                        </span>
+                        <span class="text-xs text-emerald-600">
+                            ※ 各カードの左上の<strong>大きなオレンジ色の十字ボタン</strong>をドラッグして移動、右下の矢印ボタンを引っ張って拡大できます。
+                        </span>
+                    </div>
+
+                    <!-- ポスター本体 -->
+                    <div id="posterContainer" class="print-area poster-preview w-full bg-white rounded-3xl shadow-xl border-8 border-emerald-400 p-4 md:p-6 flex flex-col justify-between transition-all duration-300 relative overflow-hidden" style="border-image: none;">
+                        
+                        <!-- 背景のドット装飾 -->
+                        <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(#10b981 1.5px, transparent 1.5px); background-size: 24px 24px;"></div>
+
+                        <!-- ヘッダーデザイン -->
+                        <div class="relative z-10 text-center mb-1">
+                            <!-- アイコン装飾 -->
+                            <div id="previewHeaderEmoji" contenteditable="true" class="editable-preview inline-block px-3 py-0.5 rounded-lg text-2xl select-all font-sans text-center transition-all duration-200" title="クリックしてイラスト/絵文字を変更できます">
+                                ✨ 💮 ✨
+                            </div>
+                            
+                            <!-- タイトル -->
+                            <h2 id="previewTitle" contenteditable="true" class="editable-preview text-2xl md:text-3xl font-black text-emerald-800 tracking-wider inline-block bg-yellow-100 px-6 py-1 rounded-full border-4 border-dashed border-yellow-400 shadow-sm transition-all duration-200" title="クリックして編集できます">
+                                がんばったことポスター
+                            </h2>
+
+                            <!-- お名前 -->
+                            <div class="mt-1 flex justify-center items-center">
+                                <div class="bg-emerald-50 border-2 border-emerald-300 px-5 py-0.5 rounded-2xl flex items-center gap-3">
+                                    <span class="text-[10px] bg-emerald-600 text-white font-bold py-0.5 px-1.5 rounded select-none">なまえ</span>
+                                    <span id="previewName" contenteditable="true" class="editable-preview text-lg font-black text-emerald-900 tracking-widest px-2 py-0.5 rounded-lg transition-all duration-200" title="クリックして編集できます">やまだ たろう</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 自由配置＆自動連動対応のカード表示エリア -->
+                        <div id="cardsArea" class="relative z-10 flex-grow my-2 min-h-[480px]">
+                            
+                            <!-- がんばったこと カード1 -->
+                            <div id="card1" class="movable-resizable-box group bg-rose-50/90 rounded-2xl border-4 border-rose-300 shadow-sm overflow-hidden p-3" style="left: 10px; top: 10px; width: 540px; height: 140px;">
+                                <!-- ドラッグ・リサイズ用ハンドル (Windows PC/iPadで確実に動作するよう、常時不透明度を高く設計しw-8 h-8に大型化) -->
+                                <div class="drag-handle move-handle absolute -top-1 -left-1 w-8 h-8 bg-amber-500 hover:bg-amber-600 text-white rounded-full flex items-center justify-center text-sm cursor-move no-print opacity-90 transition-opacity z-40 shadow-lg" title="ここをドラッグして移動">
+                                    <i class="fa-solid fa-arrows-up-down-left-right pointer-events-none"></i>
+                                </div>
+                                <div class="drag-handle resize-handle absolute -bottom-1 -right-1 w-8 h-8 bg-amber-500 hover:bg-amber-600 text-white rounded-full flex items-center justify-center text-sm cursor-se-resize no-print opacity-90 transition-opacity z-40 shadow-md" title="ここを引っ張ってサイズ変更">
+                                    <i class="fa-solid fa-arrows-left-right-to-line rotate-45 pointer-events-none"></i>
+                                </div>
+
+                                <div class="absolute top-0 left-0 bg-rose-400 text-white font-black px-3 py-0.5 rounded-br-xl text-sm z-10 select-none">
+                                    1
+                                </div>
+                                
+                                <!-- 内レイアウト: カード全体のサイズ変更に合わせて自動伸縮するFlex -->
+                                <div class="flex gap-4 w-full h-full pt-3">
+                                    <!-- 左: 自動拡張するテキストエリア -->
+                                    <div class="flex-grow h-full flex items-center overflow-hidden">
+                                        <p id="previewText1" contenteditable="true" class="editable-preview text-sm md:text-base lg:text-lg font-extrabold text-rose-950 leading-relaxed md:leading-loose whitespace-pre-line p-1 rounded-lg transition-all duration-200 w-full h-full overflow-y-auto" title="クリックしてテキストを直接編集">
+                                            げきのれんしゅうをがんばりました！
+                                            「ノンタンのブランコ」のせりふを、しっかりおぼえて、じぶんのばんでおおきなこえでおはなしできましたね。げきをたのしむすがたは、はなまるでした！
+                                        </p>
+                                    </div>
+                                    <!-- 右: 自動追従する写真エリア (ドラッグ＆ドロップ対応) -->
+                                    <div id="dropZone1" class="drop-zone flex-shrink-0 h-full aspect-video border-4 border-dashed border-rose-200 bg-white rounded-xl overflow-hidden flex items-center justify-center shadow-inner relative" data-index="1">
+                                        <img id="previewImage1" src="" class="hidden w-full h-full object-cover" />
+                                        <div id="imagePlaceholder1" class="text-center p-2 text-rose-300 select-none pointer-events-none">
+                                            <i class="fa-solid fa-image text-xl mb-0.5"></i>
+                                            <p class="text-[8px] font-bold font-sans">しゃしん 1<br>(ドロップ可)</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- がんばったこと カード2 -->
+                            <div id="card2" class="movable-resizable-box group bg-sky-50/90 rounded-2xl border-4 border-sky-300 shadow-sm overflow-hidden p-3" style="left: 10px; top: 165px; width: 540px; height: 140px;">
+                                <div class="drag-handle move-handle absolute -top-1 -left-1 w-8 h-8 bg-amber-500 hover:bg-amber-600 text-white rounded-full flex items-center justify-center text-sm cursor-move no-print opacity-90 transition-opacity z-40 shadow-md" title="ここをドラッグして移動">
+                                    <i class="fa-solid fa-arrows-up-down-left-right pointer-events-none"></i>
+                                </div>
+                                <div class="drag-handle resize-handle absolute -bottom-1 -right-1 w-8 h-8 bg-amber-500 hover:bg-amber-600 text-white rounded-full flex items-center justify-center text-sm cursor-se-resize no-print opacity-90 transition-opacity z-40 shadow-md" title="ここを引っ張ってサイズ変更">
+                                    <i class="fa-solid fa-arrows-left-right-to-line rotate-45 pointer-events-none"></i>
+                                </div>
+
+                                <div class="absolute top-0 left-0 bg-sky-400 text-white font-black px-3 py-0.5 rounded-br-xl text-sm z-10 select-none">
+                                    2
+                                </div>
+
+                                <div class="flex gap-4 w-full h-full pt-3">
+                                    <div class="flex-grow h-full flex items-center overflow-hidden">
+                                        <p id="previewText2" contenteditable="true" class="editable-preview text-sm md:text-base lg:text-lg font-extrabold text-sky-950 leading-relaxed md:leading-loose whitespace-pre-line p-1 rounded-lg transition-all duration-200 w-full h-full overflow-y-auto" title="クリックしてテキストを直接編集">
+                                            おんがくのじかんに、がっきのえんそうをがんばりましたね！
+                                            進んでがっきをもって、きれいないい音が出せました。あきらめずにさいごまでやりとげて、とってもかっこよかったです！
+                                        </p>
+                                    </div>
+                                    <div id="dropZone2" class="drop-zone flex-shrink-0 h-full aspect-video border-4 border-dashed border-sky-200 bg-white rounded-xl overflow-hidden flex items-center justify-center shadow-inner relative" data-index="2">
+                                        <img id="previewImage2" src="" class="hidden w-full h-full object-cover" />
+                                        <div id="imagePlaceholder2" class="text-center p-2 text-sky-300 select-none pointer-events-none">
+                                            <i class="fa-solid fa-image text-xl mb-0.5"></i>
+                                            <p class="text-[8px] font-bold font-sans">しゃしん 2<br>(ドロップ可)</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- がんばったこと カード3 -->
+                            <div id="card3" class="movable-resizable-box group bg-amber-50/90 rounded-2xl border-4 border-amber-300 shadow-sm overflow-hidden p-3" style="left: 10px; top: 320px; width: 540px; height: 140px;">
+                                <div class="drag-handle move-handle absolute -top-1 -left-1 w-8 h-8 bg-amber-500 hover:bg-amber-600 text-white rounded-full flex items-center justify-center text-sm cursor-move no-print opacity-90 transition-opacity z-40 shadow-md" title="ここをドラッグして移動">
+                                    <i class="fa-solid fa-arrows-up-down-left-right pointer-events-none"></i>
+                                </div>
+                                <div class="drag-handle resize-handle absolute -bottom-1 -right-1 w-8 h-8 bg-amber-500 hover:bg-amber-600 text-white rounded-full flex items-center justify-center text-sm cursor-se-resize no-print opacity-90 transition-opacity z-40 shadow-md" title="ここを引っ張ってサイズ変更">
+                                    <i class="fa-solid fa-arrows-left-right-to-line rotate-45 pointer-events-none"></i>
+                                </div>
+
+                                <div class="absolute top-0 left-0 bg-amber-400 text-white font-black px-3 py-0.5 rounded-br-xl text-sm z-10 select-none">
+                                    3
+                                </div>
+
+                                <div class="flex gap-4 w-full h-full pt-3">
+                                    <div class="flex-grow h-full flex items-center overflow-hidden">
+                                        <p id="previewText3" contenteditable="true" class="editable-preview text-sm md:text-base lg:text-lg font-extrabold text-amber-950 leading-relaxed md:leading-loose whitespace-pre-line p-1 rounded-lg transition-all duration-200 w-full h-full overflow-y-auto" title="クリックしてテキストを直接編集">
+                                            ずこうのじかんに、だいすきなでんしゃのえをかきましたね！
+                                            いろんなクレヨンをつかって、カラフルでかっこいいでんしゃをかけました。おともだちに「みせて」といわれて、うれしそうにみせていましたね！
+                                        </p>
+                                    </div>
+                                    <div id="dropZone3" class="drop-zone flex-shrink-0 h-full aspect-video border-4 border-dashed border-amber-200 bg-white rounded-xl overflow-hidden flex items-center justify-center shadow-inner relative" data-index="3">
+                                        <img id="previewImage3" src="" class="hidden w-full h-full object-cover" />
+                                        <div id="imagePlaceholder3" class="text-center p-2 text-amber-300 select-none pointer-events-none">
+                                            <i class="fa-solid fa-image text-xl mb-0.5"></i>
+                                            <p class="text-[8px] font-bold font-sans">しゃしん 3<br>(ドロップ可)</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- フッターデザイン -->
+                        <div class="relative z-10 flex justify-between items-center text-xs font-bold text-emerald-700 pt-1 border-t border-emerald-100 select-none">
+                            <span id="previewFooter" contenteditable="true" class="editable-preview px-1 rounded transition-all duration-200">特別支援学校 担任より</span>
+                            <div class="flex gap-2 text-base select-none">
+                                <span>🌸</span><span>💮</span><span>✨</span>
+                            </div>
+                            <span id="currentDate" contenteditable="true" class="editable-preview px-1 rounded transition-all duration-200">2026ねん 7がつ</span>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- フッター -->
+    <footer class="mt-12 text-center text-xs text-emerald-800 no-print">
+        <p>© がんばったことポスターメーカー</p>
+    </footer>
+
+    <!-- 通知モーダル -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-emerald-600 text-white py-3 px-6 rounded-2xl shadow-lg transition-all duration-300 transform translate-y-20 opacity-0 z-50 flex items-center gap-2 font-bold text-sm">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="toastMessage">設定しました！</span>
+    </div>
+
+    <!-- JavaScript 制御ロジック -->
+    <script>
+        const apiKey = "";
+        let activeSelectedBox = null; // 現在選択中の移動オブジェクト（矢印キー操作用）
+
+        // DOMの取得
+        const fileInput = document.getElementById('fileInput');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+        const teacherMemo = document.getElementById('teacherMemo');
+        const btnGenerate = document.getElementById('btnGenerate');
+        const aiLoading = document.getElementById('aiLoading');
+
+        const inputName = document.getElementById('inputName');
+        const inputTitle = document.getElementById('inputTitle');
+        const inputText1 = document.getElementById('inputText1');
+        const inputText2 = document.getElementById('inputText2');
+        const inputText3 = document.getElementById('inputText3');
+        
+        const previewName = document.getElementById('previewName');
+        const previewTitle = document.getElementById('previewTitle');
+        const previewText1 = document.getElementById('previewText1');
+        const previewText2 = document.getElementById('previewText2');
+        const previewText3 = document.getElementById('previewText3');
+        const previewFooter = document.getElementById('previewFooter');
+
+        const imageInput1 = document.getElementById('imageInput1');
+        const imageInput2 = document.getElementById('imageInput2');
+        const imageInput3 = document.getElementById('imageInput3');
+        
+        const previewImage1 = document.getElementById('previewImage1');
+        const previewImage2 = document.getElementById('previewImage2');
+        const previewImage3 = document.getElementById('previewImage3');
+        
+        const imagePlaceholder1 = document.getElementById('imagePlaceholder1');
+        const imagePlaceholder2 = document.getElementById('imagePlaceholder2');
+        const imagePlaceholder3 = document.getElementById('imagePlaceholder3');
+
+        const posterContainer = document.getElementById('posterContainer');
+        const btnPrint = document.getElementById('btnPrint');
+        const currentDateText = document.getElementById('currentDate');
+
+        // 今日の日付を設定
+        const today = new Date();
+        currentDateText.innerText = `${today.getFullYear()}ねん ${today.getMonth() + 1}がつ`;
+
+        // トースト通知の表示
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            toastMessage.innerText = message;
+            
+            if (type === 'error') {
+                toast.classList.replace('bg-emerald-600', 'bg-red-600');
+            } else {
+                toast.classList.replace('bg-red-600', 'bg-emerald-600');
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3500);
+        }
+
+        // ファイルアップロードの処理
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            fileNameDisplay.innerText = `読み込んだファイル: ${file.name}`;
+            fileNameDisplay.classList.remove('hidden');
+
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+
+            // Wordファイル (.docx)
+            if (fileExtension === 'docx') {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    const arrayBuffer = evt.target.result;
+                    mammoth.extractRawText({ arrayBuffer: arrayBuffer })
+                        .then(function(result) {
+                            teacherMemo.value = result.value;
+                            showToast("Wordファイルを読み込みました！");
+                        })
+                        .catch(function(err) {
+                            console.error(err);
+                            showToast("Wordファイルの読み込みに失敗しました。", "error");
+                        });
+                };
+                reader.readAsArrayBuffer(file);
+            } 
+            // Excelファイル (.xlsx, .xls)
+            else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    try {
+                        const data = new Uint8Array(evt.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        let fullText = "";
+                        
+                        workbook.SheetNames.forEach(function(sheetName) {
+                            const worksheet = workbook.Sheets[sheetName];
+                            const sheetText = XLSX.utils.sheet_to_txt(worksheet);
+                            if (sheetText && sheetText.trim().length > 0) {
+                                fullText += `--- シート: ${sheetName} ---\n${sheetText}\n\n`;
+                            }
+                        });
+
+                        if (fullText.trim().length === 0) {
+                            showToast("Excelに読み取り可能な文字がありませんでした。", "error");
+                        } else {
+                            teacherMemo.value = fullText.trim();
+                            showToast("Excelファイルを読み込みました！");
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        showToast("Excelファイルの解析に失敗しました。", "error");
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            } 
+            // 通常のテキストファイル
+            else {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    teacherMemo.value = evt.target.result;
+                    showToast("テキストファイルを読み込みました！");
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // 相互・リアルタイム編集の同期処理
+        inputName.addEventListener('input', () => previewName.innerText = inputName.value);
+        inputTitle.addEventListener('input', () => previewTitle.innerText = inputTitle.value);
+        inputText1.addEventListener('input', () => previewText1.innerText = inputText1.value);
+        inputText2.addEventListener('input', () => previewText2.innerText = inputText2.value);
+        inputText3.addEventListener('input', () => previewText3.innerText = inputText3.value);
+
+        previewName.addEventListener('input', () => inputName.value = previewName.innerText);
+        previewTitle.addEventListener('input', () => inputTitle.value = previewTitle.innerText);
+        previewText1.addEventListener('input', () => inputText1.value = previewText1.innerText);
+        previewText2.addEventListener('input', () => inputText2.value = previewText2.innerText);
+        previewText3.addEventListener('input', () => inputText3.value = previewText3.innerText);
+
+        // 画像のプレビュー反映・ファイルロード
+        function handleImageUpload(input, imgElement, placeholderElement) {
+            input.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                loadImageFile(file, imgElement, placeholderElement);
+            });
+        }
+        
+        function loadImageFile(file, imgElement, placeholderElement) {
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    imgElement.src = evt.target.result;
+                    imgElement.classList.remove('hidden');
+                    placeholderElement.classList.add('hidden');
+                    showToast("写真を配置しました！");
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        handleImageUpload(imageInput1, previewImage1, imagePlaceholder1);
+        handleImageUpload(imageInput2, previewImage2, imagePlaceholder2);
+        handleImageUpload(imageInput3, previewImage3, imagePlaceholder3);
+
+        // ==========================================
+        // ドラッグ移動＆リサイズ機能（頑強なイベントフロー設計）
+        // ==========================================
+        function initDragAndResize(boxId) {
+            const box = document.getElementById(boxId);
+            const moveHandle = box.querySelector('.move-handle');
+            const resizeHandle = box.querySelector('.resize-handle');
+            
+            // ボックスクリックで「キーボード操作用アクティブ枠」に登録
+            box.addEventListener('mousedown', (e) => {
+                // 既にアクティブなものがあれば枠線を外す
+                if (activeSelectedBox && activeSelectedBox !== box) {
+                    activeSelectedBox.classList.remove('ring-4', 'ring-amber-500');
+                }
+                activeSelectedBox = box;
+                box.classList.add('ring-4', 'ring-amber-500');
+            });
+
+            // ドラッグ移動ロジック
+            moveHandle.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                e.stopPropagation(); // 誤作動防止
+                
+                const startX = e.clientX;
+                const startY = e.clientY;
+                const startLeft = parseInt(box.style.left) || 0;
+                const startTop = parseInt(box.style.top) || 0;
+
+                const onMouseMove = (moveEvent) => {
+                    const dx = moveEvent.clientX - startX;
+                    const dy = moveEvent.clientY - startY;
+                    
+                    const parent = box.parentElement;
+                    let left = startLeft + dx;
+                    let top = startTop + dy;
+
+                    // ポスターコンテナ内での可動制限
+                    left = Math.max(0, Math.min(left, parent.clientWidth - box.offsetWidth));
+                    top = Math.max(0, Math.min(top, parent.clientHeight - box.offsetHeight));
+
+                    box.style.left = `${left}px`;
+                    box.style.top = `${top}px`;
+                };
+
+                const onMouseUp = () => {
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                };
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+
+            // タッチ移動ロジック（iPad / タブレット用）
+            moveHandle.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const touch = e.touches[0];
+                const startX = touch.clientX;
+                const startY = touch.clientY;
+                const startLeft = parseInt(box.style.left) || 0;
+                const startTop = parseInt(box.style.top) || 0;
+
+                const onTouchMove = (moveEvent) => {
+                    if (moveEvent.cancelable) moveEvent.preventDefault();
+                    const curTouch = moveEvent.touches[0];
+                    const dx = curTouch.clientX - startX;
+                    const dy = curTouch.clientY - startY;
+                    
+                    const parent = box.parentElement;
+                    let left = startLeft + dx;
+                    let top = startTop + dy;
+
+                    left = Math.max(0, Math.min(left, parent.clientWidth - box.offsetWidth));
+                    top = Math.max(0, Math.min(top, parent.clientHeight - box.offsetHeight));
+
+                    box.style.left = `${left}px`;
+                    box.style.top = `${top}px`;
+                };
+
+                const onTouchEnd = () => {
+                    document.removeEventListener('touchmove', onTouchMove);
+                    document.removeEventListener('touchend', onTouchEnd);
+                };
+
+                document.addEventListener('touchmove', onTouchMove, { passive: false });
+                document.addEventListener('touchend', onTouchEnd);
+            }, { passive: false });
+
+
+            // リサイズ（拡大縮小）ロジック（マウス）
+            resizeHandle.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const startX = e.clientX;
+                const startY = e.clientY;
+                const startWidth = box.offsetWidth;
+                const startHeight = box.offsetHeight;
+
+                const onMouseMove = (moveEvent) => {
+                    const dx = moveEvent.clientX - startX;
+                    const dy = moveEvent.clientY - startY;
+                    
+                    const parent = box.parentElement;
+                    const currentLeft = parseInt(box.style.left) || 0;
+                    const currentTop = parseInt(box.style.top) || 0;
+
+                    let width = startWidth + dx;
+                    let height = startHeight + dy;
+
+                    width = Math.max(100, Math.min(width, parent.clientWidth - currentLeft));
+                    height = Math.max(60, Math.min(height, parent.clientHeight - currentTop));
+
+                    box.style.width = `${width}px`;
+                    box.style.height = `${height}px`;
+                };
+
+                const onMouseUp = () => {
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                };
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+
+            // リサイズロジック（タッチ）
+            resizeHandle.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const touch = e.touches[0];
+                const startX = touch.clientX;
+                const startY = touch.clientY;
+                const startWidth = box.offsetWidth;
+                const startHeight = box.offsetHeight;
+
+                const onTouchMove = (moveEvent) => {
+                    if (moveEvent.cancelable) moveEvent.preventDefault();
+                    const curTouch = moveEvent.touches[0];
+                    const dx = curTouch.clientX - startX;
+                    const dy = curTouch.clientY - startY;
+                    
+                    const parent = box.parentElement;
+                    const currentLeft = parseInt(box.style.left) || 0;
+                    const currentTop = parseInt(box.style.top) || 0;
+
+                    let width = startWidth + dx;
+                    let height = startHeight + dy;
+
+                    width = Math.max(100, Math.min(width, parent.clientWidth - currentLeft));
+                    height = Math.max(60, Math.min(height, parent.clientHeight - currentTop));
+
+                    box.style.width = `${width}px`;
+                    box.style.height = `${height}px`;
+                };
+
+                const onTouchEnd = () => {
+                    document.removeEventListener('touchmove', onTouchMove);
+                    document.removeEventListener('touchend', onTouchEnd);
+                };
+
+                document.addEventListener('touchmove', onTouchMove, { passive: false });
+                document.addEventListener('touchend', onTouchEnd);
+            }, { passive: false });
+        }
+
+        // キーボード操作用のイベントリスナー（選択中のカードを矢印キーで1px単位で微調整可能に）
+        window.addEventListener('keydown', (e) => {
+            if (!activeSelectedBox) return;
+            
+            // テキスト入力中はキー入力をブロックする
+            if (document.activeElement.tagName === 'INPUT' || 
+                document.activeElement.tagName === 'TEXTAREA' || 
+                document.activeElement.hasAttribute('contenteditable')) {
+                return; 
+            }
+
+            let left = parseInt(activeSelectedBox.style.left) || 0;
+            let top = parseInt(activeSelectedBox.style.top) || 0;
+            const parent = activeSelectedBox.parentElement;
+            const step = e.shiftKey ? 10 : 1; // Shift同時押しで10px移動
+
+            if (e.key === 'ArrowUp') {
+                top = Math.max(0, top - step);
+                e.preventDefault();
+            } else if (e.key === 'ArrowDown') {
+                top = Math.min(parent.clientHeight - activeSelectedBox.offsetHeight, top + step);
+                e.preventDefault();
+            } else if (e.key === 'ArrowLeft') {
+                left = Math.max(0, left - step);
+                e.preventDefault();
+            } else if (e.key === 'ArrowRight') {
+                left = Math.min(parent.clientWidth - activeSelectedBox.offsetWidth, left + step);
+                e.preventDefault();
+            } else if (e.key === 'Escape' || e.key === 'Enter') {
+                // 選択解除
+                activeSelectedBox.classList.remove('ring-4', 'ring-amber-500');
+                activeSelectedBox = null;
+            }
+            
+            if (activeSelectedBox) {
+                activeSelectedBox.style.left = `${left}px`;
+                activeSelectedBox.style.top = `${top}px`;
+            }
+        });
+
+        // 外部をクリックした時にアクティブ選択枠線を解除する
+        document.addEventListener('mousedown', (e) => {
+            if (activeSelectedBox && !activeSelectedBox.contains(e.target)) {
+                activeSelectedBox.classList.remove('ring-4', 'ring-amber-500');
+                activeSelectedBox = null;
+            }
+        });
+
+        // ==========================================
+        // 写真枠への画像ドラッグ＆ドロップ機能 ＆ クリップボード貼り付け対応
+        // ==========================================
+        const dropZones = [
+            { zone: document.getElementById('dropZone1'), img: previewImage1, placeholder: imagePlaceholder1 },
+            { zone: document.getElementById('dropZone2'), img: previewImage2, placeholder: imagePlaceholder2 },
+            { zone: document.getElementById('dropZone3'), img: previewImage3, placeholder: imagePlaceholder3 }
+        ];
+
+        dropZones.forEach(({ zone, img, placeholder }) => {
+            // ドラッグ侵入時
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zone.classList.add('drag-over-effect');
+            });
+
+            // ドラッグ離脱時
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('drag-over-effect');
+            });
+
+            // ファイルがドロップされた時
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('drag-over-effect');
+                
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    loadImageFile(file, img, placeholder);
+                } else {
+                    showToast("画像ファイルのみアップロードできます。", "error");
+                }
+            });
+        });
+
+        // クリップボード貼り付け (Ctrl + V) での画像取り込み対応
+        window.addEventListener('paste', (e) => {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    const file = items[i].getAsFile();
+                    
+                    // 現在キーボード等で選択されているカード枠、もしくは空いている1枚目から順に貼る
+                    let targetIndex = 1;
+                    if (activeSelectedBox) {
+                        if (activeSelectedBox.id === 'card2') targetIndex = 2;
+                        else if (activeSelectedBox.id === 'card3') targetIndex = 3;
+                    }
+                    
+                    const targetZone = dropZones[targetIndex - 1];
+                    loadImageFile(file, targetZone.img, targetZone.placeholder);
+                    showToast(`画像をがんばったこと ${targetIndex} に貼り付けました！`);
+                    break;
+                }
+            }
+        });
+
+
+        // ==========================================
+        // イラスト・スタンプ動的追加システム
+        // ==========================================
+        let stampCounter = 0;
+        
+        function addEmojiStamp(emoji) {
+            createStampElement(emoji, 'emoji');
+        }
+
+        function createStampElement(content, type) {
+            stampCounter++;
+            const id = `stamp_${stampCounter}`;
+            
+            const stamp = document.createElement('div');
+            stamp.id = id;
+            stamp.className = 'movable-resizable-box group absolute z-20 w-[60px] h-[60px]';
+            stamp.style.left = '250px';
+            stamp.style.top = '10px';
+            
+            let innerHTML = '';
+            if (type === 'emoji') {
+                innerHTML = `<div class="w-full h-full flex items-center justify-center text-4xl select-none animate-pulse">${content}</div>`;
+            } else {
+                innerHTML = `<img src="${content}" class="w-full h-full object-contain pointer-events-none" />`;
+            }
+            
+            stamp.innerHTML = `
+                <div class="drag-handle move-handle absolute -top-1 -left-1 w-8 h-8 bg-pink-500 text-white rounded-full flex items-center justify-center text-sm cursor-move no-print opacity-90 transition-opacity z-40 shadow" title="うごかす">
+                    <i class="fa-solid fa-arrows-up-down-left-right pointer-events-none"></i>
+                </div>
+                <div class="drag-handle resize-handle absolute -bottom-1 -right-1 w-8 h-8 bg-pink-500 text-white rounded-full flex items-center justify-center text-sm cursor-se-resize no-print opacity-90 transition-opacity z-40 shadow" title="おおきさをかえる">
+                    <i class="fa-solid fa-arrows-left-right-to-line rotate-45 pointer-events-none"></i>
+                </div>
+                <button onclick="document.getElementById('${id}').remove()" class="drag-handle absolute -top-3 -right-3 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs no-print opacity-90 transition-opacity z-40 shadow-md" title="けす">
+                    <i class="fa-solid fa-xmark pointer-events-none"></i>
+                </button>
+                ${innerHTML}
+            `;
+            
+            posterContainer.appendChild(stamp);
+            initDragAndResize(id);
+            showToast("スタンプを追加しました！ポスターの上で移動・拡大ができます。");
+        }
+
+        // 自前イラストのアップロード
+        const stampImageInput = document.getElementById('stampImageInput');
+        stampImageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    createStampElement(evt.target.result, 'image');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // ロード時にドラッグ＆リサイズ処理をカード自体にバインド
+        window.addEventListener('load', () => {
+            initDragAndResize('card1');
+            initDragAndResize('card2');
+            initDragAndResize('card3');
+        });
+
+        // テーマ切り替え機能
+        function changeTheme(theme) {
+            posterContainer.className = "print-area poster-preview w-full bg-white rounded-3xl shadow-xl p-4 md:p-6 flex flex-col justify-between transition-all duration-300 relative overflow-hidden";
+            
+            if (theme === 'theme-green') {
+                posterContainer.classList.add('border-8', 'border-emerald-400');
+                previewTitle.className = "editable-preview text-2xl md:text-3xl font-black text-emerald-800 tracking-wider inline-block bg-yellow-100 px-6 py-1.5 rounded-full border-4 border-dashed border-yellow-400 shadow-sm transition-all duration-200";
+                previewName.className = "editable-preview text-xl font-black text-emerald-900 tracking-widest px-2 py-0.5 rounded-lg transition-all duration-200";
+            } else if (theme === 'theme-blue') {
+                posterContainer.classList.add('border-8', 'border-sky-400');
+                previewTitle.className = "editable-preview text-2xl md:text-3xl font-black text-sky-800 tracking-wider inline-block bg-yellow-100 px-6 py-1.5 rounded-full border-4 border-dashed border-yellow-400 shadow-sm transition-all duration-200";
+                previewName.className = "editable-preview text-xl font-black text-sky-900 tracking-widest px-2 py-0.5 rounded-lg transition-all duration-200";
+            } else if (theme === 'theme-pink') {
+                posterContainer.classList.add('border-8', 'border-pink-400');
+                previewTitle.className = "editable-preview text-2xl md:text-3xl font-black text-pink-800 tracking-wider inline-block bg-yellow-100 px-6 py-1.5 rounded-full border-4 border-dashed border-yellow-400 shadow-sm transition-all duration-200";
+                previewName.className = "editable-preview text-xl font-black text-pink-900 tracking-widest px-2 py-0.5 rounded-lg transition-all duration-200";
+            } else if (theme === 'theme-orange') {
+                posterContainer.classList.add('border-8', 'border-orange-400');
+                previewTitle.className = "editable-preview text-2xl md:text-3xl font-black text-orange-800 tracking-wider inline-block bg-yellow-100 px-6 py-1.5 rounded-full border-4 border-dashed border-yellow-400 shadow-sm transition-all duration-200";
+                previewName.className = "editable-preview text-xl font-black text-orange-900 tracking-widest px-2 py-0.5 rounded-lg transition-all duration-200";
+            }
+            showToast("デザインを切り替えました！");
+        }
+
+        // Gemini APIを使って自動変換
+        btnGenerate.addEventListener('click', async () => {
+            const memoContent = teacherMemo.value.trim();
+            if (!memoContent) {
+                showToast("指導記録またはメモを入力してください。", "error");
+                return;
+            }
+
+            aiLoading.classList.remove('hidden');
+            btnGenerate.disabled = true;
+
+            const systemPrompt = `あなたは特別支援学校（小・中等部）の教員を支援する専門AIです。
+入力された指導記録や行動メモを元に、児童が自分で読んで達成感を得られるような「がんばったこと」を【必ず3つ】、抽出して分かりやすく作成してください。
+
+【出力要件】
+1. がんばったこと1点目、2点目、3点目の3点のみを抽出し、子ども主体の肯定的な表現にしてください。
+2. 児童自身が理解できるよう、ひらがな・カタカナを多め（漢字にはできるだけ配慮するか、ごく簡単なものに留める）にしてください。
+3. できたことを温かく肯定し、「〜をがんばりました！」「〜できました！」のように明るく元気が出る文体にしてください。
+4. それぞれの項目の文章量は【100字程度】とし、簡潔で分かりやすく要点をまとめてください。児童が読みやすいよう、適宜自然な位置で改行(2〜3行程度)を含めてください。
+5. 出力は必ず以下の形式のJSONにしてください。余計なマークダウン記法、バックトラック、挨拶は含めないでください。
+
+{
+  "point1": "ひらがなでおおきく書いた、1つめのがんばったこと（100文字程度）",
+  "point2": "ひらがなでおおきく書いた、2つめのがんばったこと（100文字程度）",
+  "point3": "ひらがなでおおきく書いた、3つめのがんばったこと（100文字程度）"
+}`;
+
+            try {
+                const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [{ 
+                            parts: [{ 
+                                text: `以下の指導メモを、特別支援教育の児童向けに「ひらがな多め・自己肯定感がアップする明るい表現」かつ「それぞれ100文字程度」のがんばったこと3点にまとめてJSONで出力してください。\n\nメモ：\n${memoContent}` 
+                            }] 
+                        }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] },
+                        generationConfig: {
+                            responseMimeType: "application/json",
+                            responseSchema: {
+                                type: "OBJECT",
+                                properties: {
+                                    point1: { type: "STRING" },
+                                    point2: { type: "STRING" },
+                                    point3: { type: "STRING" }
+                                },
+                                required: ["point1", "point2", "point3"]
+                            }
+                        }
+                    })
+                });
+
+                const data = await response.json();
+                const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                if (resultText) {
+                    const parsed = JSON.parse(resultText);
+                    
+                    inputText1.value = parsed.point1;
+                    inputText2.value = parsed.point2;
+                    inputText3.value = parsed.point3;
+                    
+                    previewText1.innerText = parsed.point1;
+                    previewText2.innerText = parsed.point2;
+                    previewText3.innerText = parsed.point3;
+
+                    showToast("ポスター文章（100字×3つ）を自動作成しました！枠を移動・拡大して自由にレイアウトしてください。");
+                } else {
+                    throw new Error("AIからの応答が空でした。");
+                }
+
+            } catch (err) {
+                console.error(err);
+                showToast("AI処理に失敗しました。少し時間をおいて再度お試しください。", "error");
+            } finally {
+                aiLoading.classList.add('hidden');
+                btnGenerate.disabled = false;
+            }
+        });
+
+        async function fetchWithRetry(url, options, retries = 5, delay = 1000) {
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) {
+                    if (retries > 0 && (response.status >= 500 || response.status === 429)) {
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        return fetchWithRetry(url, options, retries - 1, delay * 2);
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response;
+            } catch (error) {
+                if (retries > 0) {
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    return fetchWithRetry(url, options, retries - 1, delay * 2);
+                }
+                throw error;
+            }
+        }
+
+        // 高度なPDF変換処理 (html2canvas & jsPDF)
+        btnPrint.addEventListener('click', async () => {
+            showToast("PDFポスターデータを作成しています...", "success");
+            
+            // 選択枠線を一時的に非表示
+            if (activeSelectedBox) {
+                activeSelectedBox.classList.remove('ring-4', 'ring-amber-500');
+            }
+
+            const poster = document.getElementById('posterContainer');
+            const childName = inputName.value.trim() || 'kodomo';
+            
+            // WindowsのDPIスケーリングによるズレを完全に相殺するオプション構成
+            const options = {
+                scale: 2, // 2倍スケール（超高画質印刷用）
+                useCORS: true,
+                backgroundColor: "#ffffff",
+                logging: false,
+                scrollX: 0,
+                scrollY: 0,
+                windowWidth: document.documentElement.clientWidth,
+                windowHeight: document.documentElement.clientHeight
+            };
+
+            try {
+                const canvas = await html2canvas(poster, options);
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+
+                pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+                pdf.save(`がんばったことポスター_${childName}.pdf`);
+                showToast("PDFを正常に作成・保存しました！");
+            } catch (error) {
+                console.error("PDF作成エラー:", error);
+                showToast("PDF自動生成でエラーが発生しました。ブラウザ標準の印刷画面を開きます...", "error");
+                
+                setTimeout(() => {
+                    window.focus();
+                    window.print();
+                }, 1000);
+            }
+        });
+    </script>
+</body>
+</html>
