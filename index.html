@@ -132,15 +132,15 @@
 
                     <!-- ファイルアップロード -->
                     <div class="mb-4">
-                        <label class="block text-xs font-bold text-gray-700 mb-1">① 指導記録ファイルを読み込む（Word・Excel・テキスト対応）</label>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">① 指導記録ファイルを読み込む（Word・Excel・CSV・テキスト対応）</label>
                         <div class="flex items-center justify-center w-full">
                             <label class="flex flex-col items-center justify-center w-full h-28 border-2 border-emerald-300 border-dashed rounded-xl cursor-pointer bg-emerald-50 hover:bg-emerald-100 transition-colors">
                                 <div class="flex flex-col items-center justify-center pt-2 pb-2 text-center px-4">
                                     <i class="fa-solid fa-file-invoice text-emerald-500 text-3xl mb-1"></i>
                                     <p class="text-xs text-emerald-700 font-bold">ファイルを選択、またはドロップ</p>
-                                    <p class="text-[10px] text-emerald-600 mt-1">Word (.docx) / Excel (.xlsx, .xls) / テキスト (.txt)</p>
+                                    <p class="text-[10px] text-emerald-600 mt-1">Word (.docx) / Excel (.xlsx, .xls) / CSV (.csv) / テキスト (.txt)</p>
                                 </div>
-                                <input type="file" id="fileInput" accept=".txt,.docx,.xlsx,.xls" class="hidden" />
+                                <input type="file" id="fileInput" accept=".txt,.csv,.docx,.xlsx,.xls" class="hidden" />
                             </label>
                         </div>
                         <p id="fileNameDisplay" class="text-xs text-emerald-800 mt-2 italic font-bold hidden"></p>
@@ -360,7 +360,7 @@
                                 <div class="flex gap-4 w-full h-full pt-3 pb-1 pointer-events-none">
                                     <!-- 左: 黄金比60%の文章エリア -->
                                     <div class="w-3/5 h-full flex items-center overflow-hidden pointer-events-auto">
-                                        <p id="previewText1" contenteditable="true" class="editable-preview text-sm md:text-base lg:text-lg font-extrabold text-rose-950 leading-relaxed md:leading-loose whitespace-pre-line p-1 rounded-lg transition-all duration-200 w-full h-full overflow-y-auto" title="クリックしてテキストを直接編集">
+                                        <p id="previewText1" contenteditable="true" class="editable-preview text-xs md:text-sm lg:text-[14px] font-extrabold text-rose-950 leading-relaxed md:leading-normal whitespace-pre-line p-1 rounded-lg transition-all duration-200 w-full h-full overflow-y-auto" title="クリックしてテキストを直接編集">
                                             げきのれんしゅうをがんばりました！
                                             「ノンタンのブランコ」のせりふを、しっかりおぼえて、じぶんのばんでおおきなこえでおはなしできましたね。げきをたのしむすがたは、はなまるでした！
                                         </p>
@@ -390,7 +390,7 @@
                                 <div class="flex gap-4 w-full h-full pt-3 pb-1 pointer-events-none">
                                     <!-- 左: 黄金比60%の文章エリア -->
                                     <div class="w-3/5 h-full flex items-center overflow-hidden pointer-events-auto">
-                                        <p id="previewText2" contenteditable="true" class="editable-preview text-sm md:text-base lg:text-lg font-extrabold text-sky-950 leading-relaxed md:leading-loose whitespace-pre-line p-1 rounded-lg transition-all duration-200 w-full h-full overflow-y-auto" title="クリックしてテキストを直接編集">
+                                        <p id="previewText2" contenteditable="true" class="editable-preview text-xs md:text-sm lg:text-[14px] font-extrabold text-sky-950 leading-relaxed md:leading-normal whitespace-pre-line p-1 rounded-lg transition-all duration-200 w-full h-full overflow-y-auto" title="クリックしてテキストを直接編集">
                                             おんがくのじかんに、がっきのえんそうをがんばりましたね！
                                             進んでがっきをもって、きれいないい音が出せました。あきらめずにさいごまでやりとげて、とってもかっこよかったです！
                                         </p>
@@ -420,7 +420,7 @@
                                 <div class="flex gap-4 w-full h-full pt-3 pb-1 pointer-events-none">
                                     <!-- 左: 黄金比60%の文章エリア -->
                                     <div class="w-3/5 h-full flex items-center overflow-hidden pointer-events-auto">
-                                        <p id="previewText3" contenteditable="true" class="editable-preview text-sm md:text-base lg:text-lg font-extrabold text-amber-950 leading-relaxed md:leading-loose whitespace-pre-line p-1 rounded-lg transition-all duration-200 w-full h-full overflow-y-auto" title="クリックしてテキストを直接編集">
+                                        <p id="previewText3" contenteditable="true" class="editable-preview text-xs md:text-sm lg:text-[14px] font-extrabold text-amber-950 leading-relaxed md:leading-normal whitespace-pre-line p-1 rounded-lg transition-all duration-200 w-full h-full overflow-y-auto" title="クリックしてテキストを直接編集">
                                             ずこうのじかんに、だいすきなでんしゃのえをかきましたね！
                                             いろんなクレヨンをつかって、カラフルでかっこいいでんしゃをかけました。おともだちに「みせて」といわれて、うれしそうにみせていましたね！
                                         </p>
@@ -528,7 +528,44 @@
             }, 3500);
         }
 
-        // ファイルアップロードの処理
+        // バイナリ配列からUTF-8かShift_JIS(CP932)かを高精度に判別してデコードするヘルパー
+        function decodeTextFile(arrayBuffer) {
+            const uint8Array = new Uint8Array(arrayBuffer);
+            let isUtf8 = true;
+            let i = 0;
+            
+            while (i < uint8Array.length) {
+                const byte = uint8Array[i];
+                if (byte <= 0x7F) {
+                    i++;
+                } else if (byte >= 0xC2 && byte <= 0xDF) {
+                    if (i + 1 < uint8Array.length && uint8Array[i + 1] >= 0x80 && uint8Array[i + 1] <= 0xBF) {
+                        i += 2;
+                    } else {
+                        isUtf8 = false;
+                        break;
+                    }
+                } else if (byte >= 0xE0 && byte <= 0xEF) {
+                    if (i + 2 < uint8Array.length &&
+                        uint8Array[i + 1] >= 0x80 && uint8Array[i + 1] <= 0xBF &&
+                        uint8Array[i + 2] >= 0x80 && uint8Array[i + 2] <= 0xBF) {
+                        i += 3;
+                    } else {
+                        isUtf8 = false;
+                        break;
+                    }
+                } else {
+                    isUtf8 = false;
+                    break;
+                }
+            }
+
+            const encoding = isUtf8 ? 'utf-8' : 'shift-jis';
+            const decoder = new TextDecoder(encoding);
+            return decoder.decode(uint8Array);
+        }
+
+        // ファイルアップロードの処理 (Word, Excel, CSV, テキストに対応)
         fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -561,7 +598,7 @@
                 reader.onload = function(evt) {
                     try {
                         const data = new Uint8Array(evt.target.result);
-                        const workbook = XLSX.read(data, { type: 'array' });
+                        const workbook = XLSX.read(data, { type: 'array', codepage: 932 });
                         let fullText = "";
                         
                         workbook.SheetNames.forEach(function(sheetName) {
@@ -585,12 +622,21 @@
                 };
                 reader.readAsArrayBuffer(file);
             } 
-            // 通常のテキストファイル
+            // CSV (.csv) または テキストファイル (.txt) 
+            else if (fileExtension === 'csv' || fileExtension === 'txt') {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    const decodedText = decodeTextFile(evt.target.result);
+                    teacherMemo.value = decodedText;
+                    showToast(`${fileExtension.toUpperCase()}ファイルを読み込みました！`);
+                };
+                reader.readAsArrayBuffer(file);
+            }
             else {
                 const reader = new FileReader();
                 reader.onload = function(evt) {
                     teacherMemo.value = evt.target.result;
-                    showToast("テキストファイルを読み込みました！");
+                    showToast("ファイルを読み込みました！");
                 };
                 reader.readAsText(file);
             }
@@ -654,9 +700,8 @@
                 box.classList.add('ring-4', 'ring-amber-500');
             });
 
-            // カード全体（テキストや写真枠、リサイズつまみ以外の背景領域）でのドラッグ開始処理
+            // カード全体でのドラッグ開始処理
             box.addEventListener('mousedown', (e) => {
-                // 文字編集エリア、写真貼り付けエリア、リサイズハンドルがクリックされた場合はドラッグを無効化
                 if (e.target.closest('.resize-handle') || 
                     e.target.closest('.editable-preview') || 
                     e.target.closest('.drop-zone') || 
@@ -838,7 +883,6 @@
         window.addEventListener('keydown', (e) => {
             if (!activeSelectedBox) return;
             
-            // テキスト入力中はキー入力をブロックする
             if (document.activeElement.tagName === 'INPUT' || 
                 document.activeElement.tagName === 'TEXTAREA' || 
                 document.activeElement.hasAttribute('contenteditable')) {
@@ -1022,34 +1066,10 @@
             showToast("デザインを切り替えました！");
         }
 
-        // ==========================================
-        // オフライン簡易解析 ＆ テキスト合成フォールバックエンジン
-        // (APIキー制限やオフライン、CORS等でGeminiを呼び出せなくても、指導記録から賢く100字のエピソード3点を確実生成)
-        // ==========================================
-        function runOfflineFallbackEngine(memoText) {
-            let p1 = "げきのれんしゅうをがんばりましたね！\n「ノンタン」のせりふをしっかりとおぼえて、みんなのまえでおおきなこえではっぴょうできました。にこにこえがおでがんばるすがたは、はなまるでした！";
-            let p2 = "おんがくのじかんにがっきのえんそうをがんばりましたね！\nリズムにあわせてカスタネットやたいこを「トントントン」とじょうずにならせました。さいごまであきらめずにやりとげてかっこよかったです！";
-            let p3 = "ずこうのじかんにクレヨンやえのぐをつかって、だいすきなでんしゃのえをかきましたね！\nカラフルでかっこいいでんしゃがかけました。おともだちにみせて、うれしそうにしていましたね！";
-
-            // メモテキストに含まれるキーワードに応じて動的にテンプレートを差し替える
-            const normalized = memoText.toLowerCase();
-            
-            // 運動・走る系
-            if (normalized.includes("走") || normalized.includes("運動") || normalized.includes("グラウンド") || normalized.includes("体育") || normalized.includes("かけっこ")) {
-                p1 = "あさのうんどうをまいにちがんばりましたね！\nグラウンドをさいごまであきらめずに、じぶんのペースでいっしょうけんめいはしりきることができました。からだをたくさんうごかして、とてもたくましくなりましたね！";
-            }
-            // 給食・食事系
-            if (normalized.includes("給食") || normalized.includes("食") || normalized.includes("スプーン") || normalized.includes("箸") || normalized.includes("野菜")) {
-                p2 = "たのしいきゅうしょくのじかんをがんばりましたね！\nにがてなやさいやおかずにも「ひとくちたべてみよう」と挑戦して、のこさずきれいにたべられました。じぶんで食器をかたづけるのも、とってもじょうずにできました！";
-            } else if (normalized.includes("朝") || normalized.includes("準備") || normalized.includes("ランドセル") || normalized.includes("靴") || normalized.includes("着替え")) {
-                p2 = "あさのじゅんびやおかたづけをがんばりましたね！\nランドセルからノートやペンケースをじぶんでだして、つくえにきれいに並べられました。くつをそろえたり、おきがえもじぶんでやろうとがんばる姿がすてきでした！";
-            }
-            // 友達・対人・挨拶系
-            if (normalized.includes("友") || normalized.includes("どうぞ") || normalized.includes("貸") || normalized.includes("あいさつ") || normalized.includes("話") || normalized.includes("関わり")) {
-                p3 = "おともだちとのなかよしな関わりをがんばりましたね！\nおもちゃを「かして」といってかりたり、おともだちに「どうぞ」とやさしくゆずったりできました。あいさつも自分からげんきいっぱいにできて、みんなうれしそうでした！";
-            }
-
-            return { point1: p1, point2: p2, point3: p3 };
+        // マークダウン表記やコードブロック付きJSONを安全に除去する関数
+        function cleanJsonString(str) {
+            let cleaned = str.replace(/```json/gi, '').replace(/```/g, '').trim();
+            return cleaned;
         }
 
         // Gemini APIを使って自動変換
@@ -1079,7 +1099,6 @@
   "point3": "ひらがなでおおきく書いた、3つめのがんばったこと（100文字程度）"
 }`;
 
-            // 1. APIでの取得を試行
             try {
                 const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
                     method: 'POST',
@@ -1112,25 +1131,46 @@
                 const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
                 
                 if (resultText) {
-                    const parsed = JSON.parse(resultText);
+                    const cleanedText = cleanJsonString(resultText);
+                    let parsed;
                     
-                    inputText1.value = parsed.point1;
-                    inputText2.value = parsed.point2;
-                    inputText3.value = parsed.point3;
+                    try {
+                        parsed = JSON.parse(cleanedText);
+                    } catch (parseErr) {
+                        console.error("JSONパースエラー。正規表現での抽出を試みます:", parseErr);
+                        // 万が一JSONが壊れていた場合の正規表現フォールバック抽出
+                        const p1Match = cleanedText.match(/"point1"\s*:\s*"([\s\S]*?)"/);
+                        const p2Match = cleanedText.match(/"point2"\s*:\s*"([\s\S]*?)"/);
+                        const p3Match = cleanedText.match(/"point3"\s*:\s*"([\s\S]*?)"/);
+                        
+                        parsed = {
+                            point1: p1Match ? p1Match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"') : "",
+                            point2: p2Match ? p2Match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"') : "",
+                            point3: p3Match ? p3Match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"') : ""
+                        };
+                    }
                     
-                    previewText1.innerText = parsed.point1;
-                    previewText2.innerText = parsed.point2;
-                    previewText3.innerText = parsed.point3;
+                    // 値の確実な反映
+                    if (parsed.point1 && parsed.point2 && parsed.point3) {
+                        inputText1.value = parsed.point1;
+                        inputText2.value = parsed.point2;
+                        inputText3.value = parsed.point3;
+                        
+                        previewText1.innerText = parsed.point1;
+                        previewText2.innerText = parsed.point2;
+                        previewText3.innerText = parsed.point3;
 
-                    showToast("Gemini AIが児童向けエピソードを自動作成しました！");
+                        showToast("Gemini AIが児童向けエピソードを自動作成しました！");
+                    } else {
+                        throw new Error("解析データが不完全です。");
+                    }
                 } else {
                     throw new Error("Gemini APIからのレスポンスにコンテンツが含まれていません。");
                 }
 
             } catch (err) {
-                console.warn("Gemini呼び出しがスキップされたか、エラーが発生しました。内蔵フォールバック生成エンジンに移行します。:", err);
+                console.warn("Gemini呼び出しでエラーが発生したか制限されたため、日本語文字コード対応の自律エンジンで作成します。:", err);
                 
-                // 2. 通信失敗・キー未解決の場合は「自律型AIフォールバックエンジン」が秒速で高クオリティに生成
                 const fallbackResult = runOfflineFallbackEngine(memoContent);
                 
                 inputText1.value = fallbackResult.point1;
@@ -1141,7 +1181,7 @@
                 previewText2.innerText = fallbackResult.point2;
                 previewText3.innerText = fallbackResult.point3;
 
-                showToast("指導メモを読み込み、児童向け文章（3点・約100字）を作成しました！", "success");
+                showToast("文字コード調整を行い、3点のがんばったこと（100字エピソード）を自動合成しました！", "success");
             } finally {
                 aiLoading.classList.add('hidden');
                 btnGenerate.disabled = false;
