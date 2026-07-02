@@ -109,7 +109,7 @@
                 <span>がんばったことポスターメーカー</span>
             </h1>
             <p class="text-sm bg-emerald-700 px-3 py-1 rounded-full font-bold">
-                とくべつしえんがっこう むけ
+                真駒内養護学校
             </p>
         </div>
     </header>
@@ -120,25 +120,25 @@
             <!-- 左側：設定・入力パネル (印刷時は非表示) -->
             <div class="lg:col-span-5 space-y-6 no-print">
                 
-                <!-- ステップ1: 指導記録から文章を作成 -->
+                <!-- ステップ1: Web版Geminiと安全・確実に連携して文章をつくる -->
                 <div class="bg-white p-6 rounded-3xl shadow-md border-4 border-emerald-200">
                     <h2 class="text-lg font-bold text-emerald-800 mb-3 flex items-center gap-2">
                         <span class="bg-emerald-100 text-emerald-700 w-8 h-8 rounded-full flex items-center justify-center font-bold">1</span>
-                        <span>指導記録を読み込んで自動作成</span>
+                        <span>確実に動く！Web版Geminiと連携</span>
                     </h2>
                     <p class="text-xs text-gray-600 mb-4 leading-relaxed">
-                        先生用の指導メモ、<strong>Wordファイル（.docx）</strong>、または<strong>Excelファイル（.xlsx / .xls）</strong>を読み込ませるだけで、AI（Gemini）が児童向けに分かりやすい文章を<strong>3点（それぞれ100字程度）</strong>自動作成します。
+                        学校の厳しいネットワーク制限（エラーなど）を完全に回避するため、先生が普段使っているブラウザのWeb版Geminiへ命令文（プロンプト）をコピペしてポスター文章を作成します。
                     </p>
 
-                    <!-- ファイルアップロード -->
+                    <!-- ① ファイルアップロード -->
                     <div class="mb-4">
                         <label class="block text-xs font-bold text-gray-700 mb-1">① 指導記録ファイルを読み込む（Word・Excel・CSV・テキスト対応）</label>
                         <div class="flex items-center justify-center w-full">
-                            <label class="flex flex-col items-center justify-center w-full h-28 border-2 border-emerald-300 border-dashed rounded-xl cursor-pointer bg-emerald-50 hover:bg-emerald-100 transition-colors">
+                            <label class="flex flex-col items-center justify-center w-full h-24 border-2 border-emerald-300 border-dashed rounded-xl cursor-pointer bg-emerald-50 hover:bg-emerald-100 transition-colors">
                                 <div class="flex flex-col items-center justify-center pt-2 pb-2 text-center px-4">
-                                    <i class="fa-solid fa-file-invoice text-emerald-500 text-3xl mb-1"></i>
-                                    <p class="text-xs text-emerald-700 font-bold">ファイルを選択、またはドロップ</p>
-                                    <p class="text-[10px] text-emerald-600 mt-1">Word (.docx) / Excel (.xlsx, .xls) / CSV (.csv) / テキスト (.txt)</p>
+                                    <i class="fa-solid fa-file-invoice text-emerald-500 text-2xl mb-1"></i>
+                                    <p class="text-[11px] text-emerald-700 font-bold">ファイルを選択、またはドロップ</p>
+                                    <p class="text-[9px] text-emerald-600">Word (.docx) / Excel (.xlsx, .xls) / CSV (.csv) / テキスト (.txt)</p>
                                 </div>
                                 <input type="file" id="fileInput" accept=".txt,.csv,.docx,.xlsx,.xls" class="hidden" />
                             </label>
@@ -146,22 +146,43 @@
                         <p id="fileNameDisplay" class="text-xs text-emerald-800 mt-2 italic font-bold hidden"></p>
                     </div>
 
-                    <!-- 直接入力 -->
+                    <!-- ② 記録の直接入力・読み込みテキストの確認 -->
                     <div class="mb-4">
-                        <label class="block text-xs font-bold text-gray-700 mb-1">② 記録の直接入力・読み込みテキストの確認</label>
-                        <textarea id="teacherMemo" rows="4" placeholder="【例】毎日朝の運動（グラウンド走）をサボらず最後まで粘り強く走りきれるようになりました。お友達におもちゃを貸してあげる時には、自分から「どうぞ」と手を添えて言えるようになり、仲良く関わる姿が増えました。図工の時間では大好きな電車を描きました。" class="w-full p-3 text-sm border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">② 記録の直接入力・読み込み内容の確認</label>
+                        <textarea id="teacherMemo" rows="3" placeholder="【例】毎日朝の運動（グラウンド走）をサボらず最後まで粘り強く走りきれるようになりました。お友達におもちゃを貸してあげる時には、自分から「どうぞ」と手を添えて言えるようになり、仲良く関わる姿が増えました。図工の時間では大好きな電車を描きました。" class="w-full p-2.5 text-xs border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
                     </div>
 
-                    <!-- 変換ボタン -->
-                    <button id="btnGenerate" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-transform active:scale-95 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-wand-magic-sparkles animate-pulse"></i>
-                        <span>AI（Gemini）でポスター文章を自動作成</span>
-                    </button>
+                    <!-- ③ プロンプトの生成・コピー ＆ Geminiへの接続 -->
+                    <div class="space-y-2 bg-emerald-50 p-3 rounded-2xl border border-emerald-100 mb-4">
+                        <span class="text-xs font-bold text-emerald-800 block">③ Gemini用プロンプトをコピーして使う</span>
+                        
+                        <div class="flex gap-2">
+                            <!-- コピーボタン -->
+                            <button id="btnCopyPrompt" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-3 rounded-xl shadow text-xs flex items-center justify-center gap-1.5 transition-all">
+                                <i class="fa-regular fa-copy"></i>
+                                <span>プロンプト（記録＋プロンプト）をコピー</span>
+                            </button>
+                            
+                            <!-- Geminiを別ウィンドウで開くリンクボタン -->
+                            <a href="https://gemini.google.com/" target="_blank" rel="noopener noreferrer" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-3 rounded-xl shadow text-xs flex items-center justify-center gap-1.5 text-center transition-all">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                <span>Web版Geminiをひらく</span>
+                            </a>
+                        </div>
+                        <p class="text-[10px] text-emerald-700 leading-normal">
+                            ※「コピー」を押して「Geminiをひらく」をクリックし、Geminiの入力欄に貼り付け（Ctrl+V）して送信してください。
+                        </p>
+                    </div>
 
-                    <!-- AIローディング表示 -->
-                    <div id="aiLoading" class="hidden mt-4 text-center p-3 bg-emerald-50 rounded-2xl border border-emerald-100">
-                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-emerald-500 border-t-transparent mb-2"></div>
-                        <p class="text-xs text-emerald-700 font-bold">児童向けのやさしい言葉（3つのエピソード）に変換中です。しばらくお待ちください...</p>
+                    <!-- ④ Geminiから返ってきた回答の貼り付けエリア -->
+                    <div class="border-t-2 border-emerald-100 pt-3">
+                        <label class="block text-xs font-bold text-gray-700 mb-1">④ Geminiの回答をここに貼り付ける</label>
+                        <textarea id="aiResponsePaste" rows="3" placeholder="Geminiが返した内容（JSON形式や、通常の箇条書きの文章）をここに丸ごと貼り付けてください。自動でポスターに反映されます。" class="w-full p-2.5 text-xs border border-blue-200 bg-blue-50/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        
+                        <button id="btnApplyAI" class="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl text-xs shadow transition-transform active:scale-95 flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-check-double"></i>
+                            <span>貼り付けた文章をポスターに反映する</span>
+                        </button>
                     </div>
                 </div>
 
@@ -302,7 +323,7 @@
 
             </div>
 
-            <!-- 右側：ポスターのプレビュー表示エリア -->
+            <!-- 右側：ポスターのプレビュー表示エリア（直接クリックしてその場編集 ＆ 移動拡大対応） -->
             <div class="lg:col-span-7 flex flex-col items-center">
                 <div class="w-full sticky top-4">
                     <div class="flex flex-col mb-2 no-print gap-1">
@@ -318,7 +339,7 @@
                     <!-- ポスター本体 -->
                     <div id="posterContainer" class="print-area poster-preview w-full bg-white rounded-3xl shadow-xl border-8 border-emerald-400 p-4 md:p-6 flex flex-col justify-between transition-all duration-300 relative overflow-hidden" style="border-image: none;">
                         
-                        <!-- 背景のドット装飾 -->
+                        <!-- 背景 of ドット装飾 -->
                         <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(#10b981 1.5px, transparent 1.5px); background-size: 24px 24px;"></div>
 
                         <!-- ヘッダーデザイン -->
@@ -416,7 +437,7 @@
                                     3
                                 </div>
 
-                                <!-- 内レイアウト: 【黄金比固定化】左の文章領域は常にw-3/5(60%)、右の写真枠は常にw-2/5(40%)。どちらも高さ100%で綺麗に連動伸縮 -->
+                                <!-- 内レイアウト: 【黄金比固定化】左 of 文章領域は常にw-3/5(60%)、右の写真枠は常にw-2/5(40%)。どちらも高さ100%で綺麗に連動伸縮 -->
                                 <div class="flex gap-4 w-full h-full pt-3 pb-1 pointer-events-none">
                                     <!-- 左: 黄金比60%の文章エリア -->
                                     <div class="w-3/5 h-full flex items-center overflow-hidden pointer-events-auto">
@@ -440,7 +461,7 @@
 
                         <!-- フッターデザイン -->
                         <div class="relative z-10 flex justify-between items-center text-xs font-bold text-emerald-700 pt-1 border-t border-emerald-100 select-none">
-                            <span id="previewFooter" contenteditable="true" class="editable-preview px-1 rounded transition-all duration-200">特別支援学校 担任より</span>
+                            <span id="previewFooter" contenteditable="true" class="editable-preview px-1 rounded transition-all duration-200">真駒内養護学校 担任より</span>
                             <div class="flex gap-2 text-base select-none">
                                 <span>🌸</span><span>💮</span><span>✨</span>
                             </div>
@@ -467,791 +488,774 @@
 
     <!-- JavaScript 制御ロジック -->
     <script>
-        const apiKey = "";
-        let activeSelectedBox = null; // 現在選択中の移動オブジェクト（矢印キー操作用）
+        // DOM構築完了後にすべての処理を開始するようにし、null要素へのonclick割当などのTypeErrorを完全に防止します。
+        window.addEventListener('DOMContentLoaded', () => {
+            let activeSelectedBox = null; // 現在選択中の移動オブジェクト（矢印キー操作用）
 
-        // DOMの取得
-        const fileInput = document.getElementById('fileInput');
-        const fileNameDisplay = document.getElementById('fileNameDisplay');
-        const teacherMemo = document.getElementById('teacherMemo');
-        const btnGenerate = document.getElementById('btnGenerate');
-        const aiLoading = document.getElementById('aiLoading');
+            // DOMの取得
+            const fileInput = document.getElementById('fileInput');
+            const fileNameDisplay = document.getElementById('fileNameDisplay');
+            const teacherMemo = document.getElementById('teacherMemo');
+            const btnCopyPrompt = document.getElementById('btnCopyPrompt');
+            const aiResponsePaste = document.getElementById('aiResponsePaste');
+            const btnApplyAI = document.getElementById('btnApplyAI');
 
-        const inputName = document.getElementById('inputName');
-        const inputTitle = document.getElementById('inputTitle');
-        const inputText1 = document.getElementById('inputText1');
-        const inputText2 = document.getElementById('inputText2');
-        const inputText3 = document.getElementById('inputText3');
-        
-        const previewName = document.getElementById('previewName');
-        const previewTitle = document.getElementById('previewTitle');
-        const previewText1 = document.getElementById('previewText1');
-        const previewText2 = document.getElementById('previewText2');
-        const previewText3 = document.getElementById('previewText3');
-        const previewFooter = document.getElementById('previewFooter');
-
-        const imageInput1 = document.getElementById('imageInput1');
-        const imageInput2 = document.getElementById('imageInput2');
-        const imageInput3 = document.getElementById('imageInput3');
-        
-        const previewImage1 = document.getElementById('previewImage1');
-        const previewImage2 = document.getElementById('previewImage2');
-        const previewImage3 = document.getElementById('previewImage3');
-        
-        const imagePlaceholder1 = document.getElementById('imagePlaceholder1');
-        const imagePlaceholder2 = document.getElementById('imagePlaceholder2');
-        const imagePlaceholder3 = document.getElementById('imagePlaceholder3');
-
-        const posterContainer = document.getElementById('posterContainer');
-        const btnPrint = document.getElementById('btnPrint');
-        const currentDateText = document.getElementById('currentDate');
-
-        // 今日の日付を設定
-        const today = new Date();
-        currentDateText.innerText = `${today.getFullYear()}ねん ${today.getMonth() + 1}がつ`;
-
-        // トースト通知の表示
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toastMessage');
-            toastMessage.innerText = message;
+            const inputName = document.getElementById('inputName');
+            const inputTitle = document.getElementById('inputTitle');
+            const inputText1 = document.getElementById('inputText1');
+            const inputText2 = document.getElementById('inputText2');
+            const inputText3 = document.getElementById('inputText3');
             
-            if (type === 'error') {
-                toast.classList.replace('bg-emerald-600', 'bg-red-600');
-            } else {
-                toast.classList.replace('bg-red-600', 'bg-emerald-600');
-            }
+            const previewName = document.getElementById('previewName');
+            const previewTitle = document.getElementById('previewTitle');
+            const previewText1 = document.getElementById('previewText1');
+            const previewText2 = document.getElementById('previewText2');
+            const previewText3 = document.getElementById('previewText3');
+            const previewFooter = document.getElementById('previewFooter');
 
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3500);
-        }
-
-        // バイナリ配列からUTF-8かShift_JIS(CP932)かを高精度に判別してデコードするヘルパー
-        function decodeTextFile(arrayBuffer) {
-            const uint8Array = new Uint8Array(arrayBuffer);
-            let isUtf8 = true;
-            let i = 0;
+            const imageInput1 = document.getElementById('imageInput1');
+            const imageInput2 = document.getElementById('imageInput2');
+            const imageInput3 = document.getElementById('imageInput3');
             
-            while (i < uint8Array.length) {
-                const byte = uint8Array[i];
-                if (byte <= 0x7F) {
-                    i++;
-                } else if (byte >= 0xC2 && byte <= 0xDF) {
-                    if (i + 1 < uint8Array.length && uint8Array[i + 1] >= 0x80 && uint8Array[i + 1] <= 0xBF) {
-                        i += 2;
-                    } else {
-                        isUtf8 = false;
-                        break;
-                    }
-                } else if (byte >= 0xE0 && byte <= 0xEF) {
-                    if (i + 2 < uint8Array.length &&
-                        uint8Array[i + 1] >= 0x80 && uint8Array[i + 1] <= 0xBF &&
-                        uint8Array[i + 2] >= 0x80 && uint8Array[i + 2] <= 0xBF) {
-                        i += 3;
-                    } else {
-                        isUtf8 = false;
-                        break;
-                    }
+            const previewImage1 = document.getElementById('previewImage1');
+            const previewImage2 = document.getElementById('previewImage2');
+            const previewImage3 = document.getElementById('previewImage3');
+            
+            const imagePlaceholder1 = document.getElementById('imagePlaceholder1');
+            const imagePlaceholder2 = document.getElementById('imagePlaceholder2');
+            const imagePlaceholder3 = document.getElementById('imagePlaceholder3');
+
+            const posterContainer = document.getElementById('posterContainer');
+            const btnPrint = document.getElementById('btnPrint');
+            const currentDateText = document.getElementById('currentDate');
+
+            // 今日の日付を設定
+            const today = new Date();
+            currentDateText.innerText = `${today.getFullYear()}ねん ${today.getMonth() + 1}がつ`;
+
+            // トースト通知の表示
+            function showToast(message, type = 'success') {
+                const toast = document.getElementById('toast');
+                const toastMessage = document.getElementById('toastMessage');
+                toastMessage.innerText = message;
+                
+                if (type === 'error') {
+                    toast.classList.replace('bg-emerald-600', 'bg-red-600');
                 } else {
-                    isUtf8 = false;
-                    break;
+                    toast.classList.replace('bg-red-600', 'bg-emerald-600');
                 }
+
+                toast.classList.remove('translate-y-20', 'opacity-0');
+                setTimeout(() => {
+                    toast.classList.add('translate-y-20', 'opacity-0');
+                }, 3500);
             }
 
-            const encoding = isUtf8 ? 'utf-8' : 'shift-jis';
-            const decoder = new TextDecoder(encoding);
-            return decoder.decode(uint8Array);
-        }
-
-        // ファイルアップロードの処理 (Word, Excel, CSV, テキストに対応)
-        fileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            fileNameDisplay.innerText = `読み込んだファイル: ${file.name}`;
-            fileNameDisplay.classList.remove('hidden');
-
-            const fileExtension = file.name.split('.').pop().toLowerCase();
-
-            // Wordファイル (.docx)
-            if (fileExtension === 'docx') {
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    const arrayBuffer = evt.target.result;
-                    mammoth.extractRawText({ arrayBuffer: arrayBuffer })
-                        .then(function(result) {
-                            teacherMemo.value = result.value;
-                            showToast("Wordファイルを読み込みました！");
-                        })
-                        .catch(function(err) {
-                            console.error(err);
-                            showToast("Wordファイルの読み込みに失敗しました。", "error");
-                        });
-                };
-                reader.readAsArrayBuffer(file);
-            } 
-            // Excelファイル (.xlsx, .xls)
-            else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    try {
-                        const data = new Uint8Array(evt.target.result);
-                        const workbook = XLSX.read(data, { type: 'array', codepage: 932 });
-                        let fullText = "";
-                        
-                        workbook.SheetNames.forEach(function(sheetName) {
-                            const worksheet = workbook.Sheets[sheetName];
-                            const sheetText = XLSX.utils.sheet_to_txt(worksheet);
-                            if (sheetText && sheetText.trim().length > 0) {
-                                fullText += `--- シート: ${sheetName} ---\n${sheetText}\n\n`;
-                            }
-                        });
-
-                        if (fullText.trim().length === 0) {
-                            showToast("Excelに読み取り可能な文字がありませんでした。", "error");
+            // バイナリ配列からUTF-8かShift_JIS(CP932)かを高精度に判別してデコードするヘルパー
+            function decodeTextFile(arrayBuffer) {
+                const uint8Array = new Uint8Array(arrayBuffer);
+                let isUtf8 = true;
+                let i = 0;
+                
+                while (i < uint8Array.length) {
+                    const byte = uint8Array[i];
+                    if (byte <= 0x7F) {
+                        i++;
+                    } else if (byte >= 0xC2 && byte <= 0xDF) {
+                        if (i + 1 < uint8Array.length && uint8Array[i + 1] >= 0x80 && uint8Array[i + 1] <= 0xBF) {
+                            i += 2;
                         } else {
-                            teacherMemo.value = fullText.trim();
-                            showToast("Excelファイルを読み込みました！");
+                            isUtf8 = false;
+                            break;
                         }
-                    } catch (err) {
-                        console.error(err);
-                        showToast("Excelファイルの解析に失敗しました。", "error");
+                    } else if (byte >= 0xE0 && byte <= 0xEF) {
+                        if (i + 2 < uint8Array.length &&
+                            uint8Array[i + 1] >= 0x80 && uint8Array[i + 1] <= 0xBF &&
+                            uint8Array[i + 2] >= 0x80 && uint8Array[i + 2] <= 0xBF) {
+                            i += 3;
+                        } else {
+                            isUtf8 = false;
+                            break;
+                        }
+                    } else {
+                        isUtf8 = false;
+                        break;
                     }
-                };
-                reader.readAsArrayBuffer(file);
-            } 
-            // CSV (.csv) または テキストファイル (.txt) 
-            else if (fileExtension === 'csv' || fileExtension === 'txt') {
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    const decodedText = decodeTextFile(evt.target.result);
-                    teacherMemo.value = decodedText;
-                    showToast(`${fileExtension.toUpperCase()}ファイルを読み込みました！`);
-                };
-                reader.readAsArrayBuffer(file);
+                }
+
+                const encoding = isUtf8 ? 'utf-8' : 'shift-jis';
+                const decoder = new TextDecoder(encoding);
+                return decoder.decode(uint8Array);
             }
-            else {
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    teacherMemo.value = evt.target.result;
-                    showToast("ファイルを読み込みました！");
-                };
-                reader.readAsText(file);
-            }
-        });
 
-        // 相互・リアルタイム編集の同期処理
-        inputName.addEventListener('input', () => previewName.innerText = inputName.value);
-        inputTitle.addEventListener('input', () => previewTitle.innerText = inputTitle.value);
-        inputText1.addEventListener('input', () => previewText1.innerText = inputText1.value);
-        inputText2.addEventListener('input', () => previewText2.innerText = inputText2.value);
-        inputText3.addEventListener('input', () => previewText3.innerText = inputText3.value);
-
-        previewName.addEventListener('input', () => inputName.value = previewName.innerText);
-        previewTitle.addEventListener('input', () => inputTitle.value = previewTitle.innerText);
-        previewText1.addEventListener('input', () => inputText1.value = previewText1.innerText);
-        previewText2.addEventListener('input', () => inputText2.value = previewText2.innerText);
-        previewText3.addEventListener('input', () => inputText3.value = previewText3.innerText);
-
-        // 画像のプレビュー反映・ファイルロード
-        function handleImageUpload(input, imgElement, placeholderElement) {
-            input.addEventListener('change', function(e) {
+            // ファイルアップロードの処理 (Word, Excel, CSV, テキストに対応)
+            fileInput.addEventListener('change', function(e) {
                 const file = e.target.files[0];
-                loadImageFile(file, imgElement, placeholderElement);
-            });
-        }
-        
-        function loadImageFile(file, imgElement, placeholderElement) {
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    imgElement.src = evt.target.result;
-                    imgElement.classList.remove('hidden');
-                    placeholderElement.classList.add('hidden');
-                    showToast("写真を配置しました！");
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-        
-        handleImageUpload(imageInput1, previewImage1, imagePlaceholder1);
-        handleImageUpload(imageInput2, previewImage2, imagePlaceholder2);
-        handleImageUpload(imageInput3, previewImage3, imagePlaceholder3);
+                if (!file) return;
 
-        // ==========================================
-        // 背景クリックドラッグ対応の、直感的ドラッグ＆リサイズ処理
-        // ==========================================
-        function initDragAndResize(boxId) {
-            const box = document.getElementById(boxId);
-            const resizeHandle = box.querySelector('.resize-handle');
-            
-            let isDragging = false;
-            let isResizing = false;
-            let startX, startY, startLeft, startTop, startWidth, startHeight;
+                fileNameDisplay.innerText = `読み込んだファイル: ${file.name}`;
+                fileNameDisplay.classList.remove('hidden');
 
-            // ボックスクリックでアクティブ枠に設定
-            box.addEventListener('mousedown', (e) => {
-                if (activeSelectedBox && activeSelectedBox !== box) {
-                    activeSelectedBox.classList.remove('ring-4', 'ring-amber-500');
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+
+                if (fileExtension === 'docx') {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        const arrayBuffer = evt.target.result;
+                        mammoth.extractRawText({ arrayBuffer: arrayBuffer })
+                            .then(function(result) {
+                                teacherMemo.value = result.value;
+                                showToast("Wordファイルを読み込みました！");
+                            })
+                            .catch(function(err) {
+                                console.error(err);
+                                showToast("Wordファイルの読み込みに失敗しました。", "error");
+                            });
+                    };
+                    reader.readAsArrayBuffer(file);
+                } 
+                // Excel (.xlsx, .xls) および CSV (.csv) 形式 
+                else if (fileExtension === 'xlsx' || fileExtension === 'xls' || fileExtension === 'csv') {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        try {
+                            const data = new Uint8Array(evt.target.result);
+                            // XLSX.readはCSVも自動判別してデコードできます
+                            const workbook = XLSX.read(data, { type: 'array', codepage: 932 });
+                            let fullText = "";
+                            
+                            workbook.SheetNames.forEach(function(sheetName) {
+                                const worksheet = workbook.Sheets[sheetName];
+                                // sheet_to_csvのほうが日本語パースが抜群に安定します
+                                const sheetText = XLSX.utils.sheet_to_csv(worksheet);
+                                if (sheetText && sheetText.trim().length > 0) {
+                                    fullText += `--- シート: ${sheetName} ---\n${sheetText}\n\n`;
+                                }
+                            });
+
+                            if (fullText.trim().length === 0) {
+                                showToast("ファイル内に読み取り可能な文字がありませんでした。", "error");
+                            } else {
+                                teacherMemo.value = fullText.trim();
+                                showToast(`${fileExtension.toUpperCase()}ファイルを文字化けなしで読み込みました！`);
+                            }
+                        } catch (err) {
+                            console.error(err);
+                            showToast("ファイルの解析に失敗しました。", "error");
+                        }
+                    };
+                    reader.readAsArrayBuffer(file);
+                } 
+                // 通常のテキストファイル (.txt) 
+                else if (fileExtension === 'txt') {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        const decodedText = decodeTextFile(evt.target.result);
+                        teacherMemo.value = decodedText;
+                        showToast("テキストファイルを読み込みました！");
+                    };
+                    reader.readAsArrayBuffer(file);
                 }
-                activeSelectedBox = box;
-                box.classList.add('ring-4', 'ring-amber-500');
-            });
-
-            // カード全体でのドラッグ開始処理
-            box.addEventListener('mousedown', (e) => {
-                if (e.target.closest('.resize-handle') || 
-                    e.target.closest('.editable-preview') || 
-                    e.target.closest('.drop-zone') || 
-                    e.target.closest('button')) {
-                    return; 
+                else {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        teacherMemo.value = evt.target.result;
+                        showToast("ファイルを読み込みました！");
+                    };
+                    reader.readAsText(file);
                 }
-                
-                e.preventDefault();
-                isDragging = true;
-                
-                startX = e.clientX;
-                startY = e.clientY;
-                startLeft = parseInt(box.style.left) || 0;
-                startTop = parseInt(box.style.top) || 0;
-
-                const onMouseMove = (moveEvent) => {
-                    if (!isDragging) return;
-                    moveEvent.preventDefault();
-                    
-                    const dx = moveEvent.clientX - startX;
-                    const dy = moveEvent.clientY - startY;
-                    
-                    const parent = box.parentElement;
-                    let left = startLeft + dx;
-                    let top = startTop + dy;
-
-                    // ポスターコンテナ内での可動制限
-                    left = Math.max(0, Math.min(left, parent.clientWidth - box.offsetWidth));
-                    top = Math.max(0, Math.min(top, parent.clientHeight - box.offsetHeight));
-
-                    box.style.left = `${left}px`;
-                    box.style.top = `${top}px`;
-                };
-
-                const onMouseUp = () => {
-                    isDragging = false;
-                    document.removeEventListener('mousemove', onMouseMove);
-                    document.removeEventListener('mouseup', onMouseUp);
-                };
-
-                document.addEventListener('mousemove', onMouseMove);
-                document.addEventListener('mouseup', onMouseUp);
             });
 
-            // タッチ移動ロジック（背景タッチ対応 / iPad用）
-            box.addEventListener('touchstart', (e) => {
-                if (e.target.closest('.resize-handle') || 
-                    e.target.closest('.editable-preview') || 
-                    e.target.closest('.drop-zone') || 
-                    e.target.closest('button')) {
-                    return; 
-                }
-                
-                if (e.cancelable) e.preventDefault();
-                isDragging = true;
-                
-                const touch = e.touches[0];
-                startX = touch.clientX;
-                startY = touch.clientY;
-                startLeft = parseInt(box.style.left) || 0;
-                startTop = parseInt(box.style.top) || 0;
+            // 相互・リアルタイム編集の同期処理
+            inputName.addEventListener('input', () => previewName.innerText = inputName.value);
+            inputTitle.addEventListener('input', () => previewTitle.innerText = inputTitle.value);
+            inputText1.addEventListener('input', () => previewText1.innerText = inputText1.value);
+            inputText2.addEventListener('input', () => previewText2.innerText = inputText2.value);
+            inputText3.addEventListener('input', () => previewText3.innerText = inputText3.value);
 
-                const onTouchMove = (moveEvent) => {
-                    if (!isDragging) return;
-                    if (moveEvent.cancelable) moveEvent.preventDefault();
-                    
-                    const curTouch = moveEvent.touches[0];
-                    const dx = curTouch.clientX - startX;
-                    const dy = curTouch.clientY - startY;
-                    
-                    const parent = box.parentElement;
-                    let left = startLeft + dx;
-                    let top = startTop + dy;
+            previewName.addEventListener('input', () => inputName.value = previewName.innerText);
+            previewTitle.addEventListener('input', () => inputTitle.value = previewTitle.innerText);
+            previewText1.addEventListener('input', () => inputText1.value = previewText1.innerText);
+            previewText2.addEventListener('input', () => inputText2.value = previewText2.innerText);
+            previewText3.addEventListener('input', () => inputText3.value = previewText3.innerText);
 
-                    left = Math.max(0, Math.min(left, parent.clientWidth - box.offsetWidth));
-                    top = Math.max(0, Math.min(top, parent.clientHeight - box.offsetHeight));
-
-                    box.style.left = `${left}px`;
-                    box.style.top = `${top}px`;
-                };
-
-                const onTouchEnd = () => {
-                    isDragging = false;
-                    document.removeEventListener('touchmove', onTouchMove);
-                    document.removeEventListener('touchend', onTouchEnd);
-                };
-
-                document.addEventListener('touchmove', onTouchMove, { passive: false });
-                document.addEventListener('touchend', onTouchEnd);
-            }, { passive: false });
-
-
-            // リサイズ（拡大縮小）ロジック（マウス）
-            resizeHandle.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                isResizing = true;
-                startX = e.clientX;
-                startY = e.clientY;
-                startWidth = box.offsetWidth;
-                startHeight = box.offsetHeight;
-
-                const onMouseMove = (moveEvent) => {
-                    if (!isResizing) return;
-                    const dx = moveEvent.clientX - startX;
-                    const dy = moveEvent.clientY - startY;
-                    
-                    const parent = box.parentElement;
-                    const currentLeft = parseInt(box.style.left) || 0;
-                    const currentTop = parseInt(box.style.top) || 0;
-
-                    let width = startWidth + dx;
-                    let height = startHeight + dy;
-
-                    width = Math.max(150, Math.min(width, parent.clientWidth - currentLeft));
-                    height = Math.max(80, Math.min(height, parent.clientHeight - currentTop));
-
-                    box.style.width = `${width}px`;
-                    box.style.height = `${height}px`;
-                };
-
-                const onMouseUp = () => {
-                    isResizing = false;
-                    document.removeEventListener('mousemove', onMouseMove);
-                    document.removeEventListener('mouseup', onMouseUp);
-                };
-
-                document.addEventListener('mousemove', onMouseMove);
-                document.addEventListener('mouseup', onMouseUp);
-            });
-
-            // リサイズロジック（タッチ）
-            resizeHandle.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                isResizing = true;
-                const touch = e.touches[0];
-                startX = touch.clientX;
-                startY = touch.clientY;
-                startWidth = box.offsetWidth;
-                startHeight = box.offsetHeight;
-
-                const onTouchMove = (moveEvent) => {
-                    if (!isResizing) return;
-                    if (moveEvent.cancelable) moveEvent.preventDefault();
-                    
-                    const curTouch = moveEvent.touches[0];
-                    const dx = curTouch.clientX - startX;
-                    const dy = curTouch.clientY - startY;
-                    
-                    const parent = box.parentElement;
-                    const currentLeft = parseInt(box.style.left) || 0;
-                    const currentTop = parseInt(box.style.top) || 0;
-
-                    let width = startWidth + dx;
-                    let height = startHeight + dy;
-
-                    width = Math.max(150, Math.min(width, parent.clientWidth - currentLeft));
-                    height = Math.max(80, Math.min(height, parent.clientHeight - currentTop));
-
-                    box.style.width = `${width}px`;
-                    box.style.height = `${height}px`;
-                };
-
-                const onTouchEnd = () => {
-                    isResizing = false;
-                    document.removeEventListener('touchmove', onTouchMove);
-                    document.removeEventListener('touchend', onTouchEnd);
-                };
-
-                document.addEventListener('touchmove', onTouchMove, { passive: false });
-                document.addEventListener('touchend', onTouchEnd);
-            }, { passive: false });
-        }
-
-        // キーボード操作用のイベントリスナー（選択中のカードを矢印キーで1px単位で微調整可能に）
-        window.addEventListener('keydown', (e) => {
-            if (!activeSelectedBox) return;
-            
-            if (document.activeElement.tagName === 'INPUT' || 
-                document.activeElement.tagName === 'TEXTAREA' || 
-                document.activeElement.hasAttribute('contenteditable')) {
-                return; 
-            }
-
-            let left = parseInt(activeSelectedBox.style.left) || 0;
-            let top = parseInt(activeSelectedBox.style.top) || 0;
-            const parent = activeSelectedBox.parentElement;
-            const step = e.shiftKey ? 10 : 1; // Shift同時押しで10px移動
-
-            if (e.key === 'ArrowUp') {
-                top = Math.max(0, top - step);
-                e.preventDefault();
-            } else if (e.key === 'ArrowDown') {
-                top = Math.min(parent.clientHeight - activeSelectedBox.offsetHeight, top + step);
-                e.preventDefault();
-            } else if (e.key === 'ArrowLeft') {
-                left = Math.max(0, left - step);
-                e.preventDefault();
-            } else if (e.key === 'ArrowRight') {
-                left = Math.min(parent.clientWidth - activeSelectedBox.offsetWidth, left + step);
-                e.preventDefault();
-            } else if (e.key === 'Escape' || e.key === 'Enter') {
-                activeSelectedBox.classList.remove('ring-4', 'ring-amber-500');
-                activeSelectedBox = null;
+            // 画像のプレビュー反映・ファイルロード
+            function handleImageUpload(input, imgElement, placeholderElement) {
+                input.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    loadImageFile(file, imgElement, placeholderElement);
+                });
             }
             
-            if (activeSelectedBox) {
-                activeSelectedBox.style.left = `${left}px`;
-                activeSelectedBox.style.top = `${top}px`;
-            }
-        });
-
-        // 外部をクリックした時にアクティブ選択枠線を解除する
-        document.addEventListener('mousedown', (e) => {
-            if (activeSelectedBox && !activeSelectedBox.contains(e.target)) {
-                activeSelectedBox.classList.remove('ring-4', 'ring-amber-500');
-                activeSelectedBox = null;
-            }
-        });
-
-        // ==========================================
-        // 写真枠への画像ドラッグ＆ドロップ機能 ＆ クリップボード貼り付け対応
-        // ==========================================
-        const dropZones = [
-            { zone: document.getElementById('dropZone1'), img: previewImage1, placeholder: imagePlaceholder1 },
-            { zone: document.getElementById('dropZone2'), img: previewImage2, placeholder: imagePlaceholder2 },
-            { zone: document.getElementById('dropZone3'), img: previewImage3, placeholder: imagePlaceholder3 }
-        ];
-
-        dropZones.forEach(({ zone, img, placeholder }) => {
-            zone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                zone.classList.add('drag-over-effect');
-            });
-
-            zone.addEventListener('dragleave', () => {
-                zone.classList.remove('drag-over-effect');
-            });
-
-            zone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                zone.classList.remove('drag-over-effect');
-                
-                const file = e.dataTransfer.files[0];
-                if (file && file.type.startsWith('image/')) {
-                    loadImageFile(file, img, placeholder);
-                } else {
-                    showToast("画像ファイルのみアップロードできます。", "error");
+            function loadImageFile(file, imgElement, placeholderElement) {
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        imgElement.src = evt.target.result;
+                        imgElement.classList.remove('hidden');
+                        placeholderElement.classList.add('hidden');
+                        showToast("写真を配置しました！");
+                    };
+                    reader.readAsDataURL(file);
                 }
-            });
-        });
+            }
+            
+            handleImageUpload(imageInput1, previewImage1, imagePlaceholder1);
+            handleImageUpload(imageInput2, previewImage2, imagePlaceholder2);
+            handleImageUpload(imageInput3, previewImage3, imagePlaceholder3);
 
-        // クリップボード貼り付け (Ctrl + V)
-        window.addEventListener('paste', (e) => {
-            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-            for (let i = 0; i < items.length; i++) {
-                if (items[i].type.indexOf('image') !== -1) {
-                    const file = items[i].getAsFile();
-                    
-                    let targetIndex = 1;
-                    if (activeSelectedBox) {
-                        if (activeSelectedBox.id === 'card2') targetIndex = 2;
-                        else if (activeSelectedBox.id === 'card3') targetIndex = 3;
+            // ==========================================
+            // 背景クリックドラッグ対応の、直感的ドラッグ＆リサイズ処理
+            // ==========================================
+            function initDragAndResize(boxId) {
+                const box = document.getElementById(boxId);
+                const resizeHandle = box.querySelector('.resize-handle');
+                
+                let isDragging = false;
+                let isResizing = false;
+                let startX, startY, startLeft, startTop, startWidth, startHeight;
+
+                // ボックスクリックでアクティブ枠に設定
+                box.addEventListener('mousedown', (e) => {
+                    if (activeSelectedBox && activeSelectedBox !== box) {
+                        activeSelectedBox.classList.remove('ring-4', 'ring-amber-500');
+                    }
+                    activeSelectedBox = box;
+                    box.classList.add('ring-4', 'ring-amber-500');
+                });
+
+                // カード全体でのドラッグ開始処理
+                box.addEventListener('mousedown', (e) => {
+                    if (e.target.closest('.resize-handle') || 
+                        e.target.closest('.editable-preview') || 
+                        e.target.closest('.drop-zone') || 
+                        e.target.closest('button')) {
+                        return; 
                     }
                     
-                    const targetZone = dropZones[targetIndex - 1];
-                    loadImageFile(file, targetZone.img, targetZone.placeholder);
-                    showToast(`画像をがんばったこと ${targetIndex} に貼り付けました！`);
-                    break;
+                    e.preventDefault();
+                    isDragging = true;
+                    
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    startLeft = parseInt(box.style.left) || 0;
+                    startTop = parseInt(box.style.top) || 0;
+
+                    const onMouseMove = (moveEvent) => {
+                        if (!isDragging) return;
+                        moveEvent.preventDefault();
+                        
+                        const dx = moveEvent.clientX - startX;
+                        const dy = moveEvent.clientY - startY;
+                        
+                        const parent = box.parentElement;
+                        let left = startLeft + dx;
+                        let top = startTop + dy;
+
+                        left = Math.max(0, Math.min(left, parent.clientWidth - box.offsetWidth));
+                        top = Math.max(0, Math.min(top, parent.clientHeight - box.offsetHeight));
+
+                        box.style.left = `${left}px`;
+                        box.style.top = `${top}px`;
+                    };
+
+                    const onMouseUp = () => {
+                        isDragging = false;
+                        document.removeEventListener('mousemove', onMouseMove);
+                        document.removeEventListener('mouseup', onMouseUp);
+                    };
+
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('mouseup', onMouseUp);
+                });
+
+                box.addEventListener('touchstart', (e) => {
+                    if (e.target.closest('.resize-handle') || 
+                        e.target.closest('.editable-preview') || 
+                        e.target.closest('.drop-zone') || 
+                        e.target.closest('button')) {
+                        return; 
+                    }
+                    
+                    if (e.cancelable) e.preventDefault();
+                    isDragging = true;
+                    
+                    const touch = e.touches[0];
+                    startX = touch.clientX;
+                    startY = touch.clientY;
+                    startLeft = parseInt(box.style.left) || 0;
+                    startTop = parseInt(box.style.top) || 0;
+
+                    const onTouchMove = (moveEvent) => {
+                        if (!isDragging) return;
+                        if (moveEvent.cancelable) moveEvent.preventDefault();
+                        
+                        const curTouch = moveEvent.touches[0];
+                        const dx = curTouch.clientX - startX;
+                        const dy = curTouch.clientY - startY;
+                        
+                        const parent = box.parentElement;
+                        let left = startLeft + dx;
+                        let top = startTop + dy;
+
+                        left = Math.max(0, Math.min(left, parent.clientWidth - box.offsetWidth));
+                        top = Math.max(0, Math.min(top, parent.clientHeight - box.offsetHeight));
+
+                        box.style.left = `${left}px`;
+                        box.style.top = `${top}px`;
+                    };
+
+                    const onTouchEnd = () => {
+                        isDragging = false;
+                        document.removeEventListener('touchmove', onTouchMove);
+                        document.removeEventListener('touchend', onTouchEnd);
+                    };
+
+                    document.addEventListener('touchmove', onTouchMove, { passive: false });
+                    document.addEventListener('touchend', onTouchEnd);
+                }, { passive: false });
+
+                resizeHandle.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    isResizing = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    startWidth = box.offsetWidth;
+                    startHeight = box.offsetHeight;
+
+                    const onMouseMove = (moveEvent) => {
+                        if (!isResizing) return;
+                        const dx = moveEvent.clientX - startX;
+                        const dy = moveEvent.clientY - startY;
+                        
+                        const parent = box.parentElement;
+                        const currentLeft = parseInt(box.style.left) || 0;
+                        const currentTop = parseInt(box.style.top) || 0;
+
+                        let width = startWidth + dx;
+                        let height = startHeight + dy;
+
+                        width = Math.max(150, Math.min(width, parent.clientWidth - currentLeft));
+                        height = Math.max(80, Math.min(height, parent.clientHeight - currentTop));
+
+                        box.style.width = `${width}px`;
+                        box.style.height = `${height}px`;
+                    };
+
+                    const onMouseUp = () => {
+                        isResizing = false;
+                        document.removeEventListener('mousemove', onMouseMove);
+                        document.removeEventListener('mouseup', onMouseUp);
+                    };
+
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('mouseup', onMouseUp);
+                });
+
+                resizeHandle.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    isResizing = true;
+                    const touch = e.touches[0];
+                    startX = touch.clientX;
+                    startY = touch.clientY;
+                    startWidth = box.offsetWidth;
+                    startHeight = box.offsetHeight;
+
+                    const onTouchMove = (moveEvent) => {
+                        if (!isResizing) return;
+                        if (moveEvent.cancelable) moveEvent.preventDefault();
+                        
+                        const curTouch = moveEvent.touches[0];
+                        const dx = curTouch.clientX - startX;
+                        const dy = curTouch.clientY - startY;
+                        
+                        const parent = box.parentElement;
+                        const currentLeft = parseInt(box.style.left) || 0;
+                        const currentTop = parseInt(box.style.top) || 0;
+
+                        let width = startWidth + dx;
+                        let height = startHeight + dy;
+
+                        width = Math.max(150, Math.min(width, parent.clientWidth - currentLeft));
+                        height = Math.max(80, Math.min(height, parent.clientHeight - currentTop));
+
+                        box.style.width = `${width}px`;
+                        box.style.height = `${height}px`;
+                    };
+
+                    const onTouchEnd = () => {
+                        isResizing = false;
+                        document.removeEventListener('touchmove', onTouchMove);
+                        document.removeEventListener('touchend', onTouchEnd);
+                    };
+
+                    document.addEventListener('touchmove', onTouchMove, { passive: false });
+                    document.addEventListener('touchend', onTouchEnd);
+                }, { passive: false });
+            }
+
+            // キーボード操作用のイベントリスナー
+            window.addEventListener('keydown', (e) => {
+                if (!activeSelectedBox) return;
+                
+                if (document.activeElement.tagName === 'INPUT' || 
+                    document.activeElement.tagName === 'TEXTAREA' || 
+                    document.activeElement.hasAttribute('contenteditable')) {
+                    return; 
                 }
+
+                let left = parseInt(activeSelectedBox.style.left) || 0;
+                let top = parseInt(activeSelectedBox.style.top) || 0;
+                const parent = activeSelectedBox.parentElement;
+                const step = e.shiftKey ? 10 : 1;
+
+                if (e.key === 'ArrowUp') {
+                    top = Math.max(0, top - step);
+                    e.preventDefault();
+                } else if (e.key === 'ArrowDown') {
+                    top = Math.min(parent.clientHeight - activeSelectedBox.offsetHeight, top + step);
+                    e.preventDefault();
+                } else if (e.key === 'ArrowLeft') {
+                    left = Math.max(0, left - step);
+                    e.preventDefault();
+                } else if (e.key === 'ArrowRight') {
+                    left = Math.min(parent.clientWidth - activeSelectedBox.offsetWidth, left + step);
+                    e.preventDefault();
+                } else if (e.key === 'Escape' || e.key === 'Enter') {
+                    activeSelectedBox.classList.remove('ring-4', 'ring-amber-500');
+                    activeSelectedBox = null;
+                }
+                
+                if (activeSelectedBox) {
+                    activeSelectedBox.style.left = `${left}px`;
+                    activeSelectedBox.style.top = `${top}px`;
+                }
+            });
+
+            document.addEventListener('mousedown', (e) => {
+                if (activeSelectedBox && !activeSelectedBox.contains(e.target)) {
+                    activeSelectedBox.classList.remove('ring-4', 'ring-amber-500');
+                    activeSelectedBox = null;
+                }
+            });
+
+            // ==========================================
+            // 写真枠への画像ドラッグ＆ドロップ機能 ＆ クリップボード貼り付け対応
+            // ==========================================
+            const dropZones = [
+                { zone: document.getElementById('dropZone1'), img: previewImage1, placeholder: imagePlaceholder1 },
+                { zone: document.getElementById('dropZone2'), img: previewImage2, placeholder: imagePlaceholder2 },
+                { zone: document.getElementById('dropZone3'), img: previewImage3, placeholder: imagePlaceholder3 }
+            ];
+
+            dropZones.forEach(({ zone, img, placeholder }) => {
+                zone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    zone.classList.add('drag-over-effect');
+                });
+
+                zone.addEventListener('dragleave', () => {
+                    zone.classList.remove('drag-over-effect');
+                });
+
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    zone.classList.remove('drag-over-effect');
+                    
+                    const file = e.dataTransfer.files[0];
+                    if (file && file.type.startsWith('image/')) {
+                        loadImageFile(file, img, placeholder);
+                    } else {
+                        showToast("画像ファイルのみアップロードできます。", "error");
+                    }
+                });
+            });
+
+            window.addEventListener('paste', (e) => {
+                const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                        const file = items[i].getAsFile();
+                        
+                        let targetIndex = 1;
+                        if (activeSelectedBox) {
+                            if (activeSelectedBox.id === 'card2') targetIndex = 2;
+                            else if (activeSelectedBox.id === 'card3') targetIndex = 3;
+                        }
+                        
+                        const targetZone = dropZones[targetIndex - 1];
+                        loadImageFile(file, targetZone.img, targetZone.placeholder);
+                        showToast("画像をがんばったことに貼り付けました！");
+                        break;
+                    }
+                }
+            });
+
+            // ==========================================
+            // イラスト・スタンプ動的追加システム
+            // ==========================================
+            window.addEmojiStamp = function(emoji) {
+                createStampElement(emoji, 'emoji');
+            };
+
+            let stampCounter = 0;
+            function createStampElement(content, type) {
+                stampCounter++;
+                const id = `stamp_${stampCounter}`;
+                
+                const stamp = document.createElement('div');
+                stamp.id = id;
+                stamp.className = 'movable-resizable-box group absolute z-20 w-[60px] h-[60px]';
+                stamp.style.left = '250px';
+                stamp.style.top = '10px';
+                
+                let innerHTML = '';
+                if (type === 'emoji') {
+                    innerHTML = `<div class="w-full h-full flex items-center justify-center text-4xl select-none animate-pulse">${content}</div>`;
+                } else {
+                    innerHTML = `<img src="${content}" class="w-full h-full object-contain pointer-events-none" />`;
+                }
+                
+                stamp.innerHTML = `
+                    <div class="drag-handle move-handle absolute -top-3 -left-3 w-8 h-8 bg-pink-500 hover:bg-pink-600 text-white rounded-full flex items-center justify-center text-xs cursor-move no-print opacity-90 transition-opacity z-40 shadow-md" title="うごかす">
+                        <i class="fa-solid fa-arrows-up-down-left-right pointer-events-none"></i>
+                    </div>
+                    <div class="drag-handle resize-handle absolute -bottom-3 -right-3 w-8 h-8 bg-pink-500 hover:bg-pink-600 text-white rounded-full flex items-center justify-center text-xs cursor-se-resize no-print opacity-90 transition-opacity z-40 shadow-md" title="おおきさをかえる">
+                        <i class="fa-solid fa-arrows-left-right-to-line rotate-45 pointer-events-none"></i>
+                    </div>
+                    <button onclick="document.getElementById('${id}').remove()" class="drag-handle absolute -top-3 -right-3 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs no-print opacity-90 transition-opacity z-40 shadow-md" title="けす">
+                        <i class="fa-solid fa-xmark pointer-events-none"></i>
+                    </button>
+                    ${innerHTML}
+                `;
+                
+                posterContainer.appendChild(stamp);
+                initDragAndResize(id);
+                showToast("スタンプを追加しました！ポスターの上で移動・拡大ができます。");
             }
-        });
 
-        // ==========================================
-        // イラスト・スタンプ動的追加システム
-        // ==========================================
-        let stampCounter = 0;
-        
-        function addEmojiStamp(emoji) {
-            createStampElement(emoji, 'emoji');
-        }
+            const stampImageInput = document.getElementById('stampImageInput');
+            stampImageInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        createStampElement(evt.target.result, 'image');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
 
-        function createStampElement(content, type) {
-            stampCounter++;
-            const id = `stamp_${stampCounter}`;
-            
-            const stamp = document.createElement('div');
-            stamp.id = id;
-            stamp.className = 'movable-resizable-box group absolute z-20 w-[60px] h-[60px]';
-            stamp.style.left = '250px';
-            stamp.style.top = '10px';
-            
-            let innerHTML = '';
-            if (type === 'emoji') {
-                innerHTML = `<div class="w-full h-full flex items-center justify-center text-4xl select-none animate-pulse">${content}</div>`;
-            } else {
-                innerHTML = `<img src="${content}" class="w-full h-full object-contain pointer-events-none" />`;
-            }
-            
-            stamp.innerHTML = `
-                <div class="drag-handle move-handle absolute -top-3 -left-3 w-8 h-8 bg-pink-500 hover:bg-pink-600 text-white rounded-full flex items-center justify-center text-xs cursor-move no-print opacity-90 transition-opacity z-40 shadow-md" title="うごかす">
-                    <i class="fa-solid fa-arrows-up-down-left-right pointer-events-none"></i>
-                </div>
-                <div class="drag-handle resize-handle absolute -bottom-3 -right-3 w-8 h-8 bg-pink-500 hover:bg-pink-600 text-white rounded-full flex items-center justify-center text-xs cursor-se-resize no-print opacity-90 transition-opacity z-40 shadow-md" title="おおきさをかえる">
-                    <i class="fa-solid fa-arrows-left-right-to-line rotate-45 pointer-events-none"></i>
-                </div>
-                <button onclick="document.getElementById('${id}').remove()" class="drag-handle absolute -top-3 -right-3 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs no-print opacity-90 transition-opacity z-40 shadow-md" title="けす">
-                    <i class="fa-solid fa-xmark pointer-events-none"></i>
-                </button>
-                ${innerHTML}
-            `;
-            
-            posterContainer.appendChild(stamp);
-            initDragAndResize(id);
-            showToast("スタンプを追加しました！ポスターの上で移動・拡大ができます。");
-        }
-
-        // 自前イラストのアップロード
-        const stampImageInput = document.getElementById('stampImageInput');
-        stampImageInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    createStampElement(evt.target.result, 'image');
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // ロード時にドラッグ＆リサイズ処理をカード自体にバインド
-        window.addEventListener('load', () => {
+            // 初期化用のイベント設定
             initDragAndResize('card1');
             initDragAndResize('card2');
             initDragAndResize('card3');
-        });
 
-        // テーマ切り替え機能
-        function changeTheme(theme) {
-            posterContainer.className = "print-area poster-preview w-full bg-white rounded-3xl shadow-xl p-4 md:p-6 flex flex-col justify-between transition-all duration-300 relative overflow-hidden";
-            
-            if (theme === 'theme-green') {
-                posterContainer.classList.add('border-8', 'border-emerald-400');
-                previewTitle.className = "editable-preview text-2xl md:text-3xl font-black text-emerald-800 tracking-wider inline-block bg-yellow-100 px-6 py-1.5 rounded-full border-4 border-dashed border-yellow-400 shadow-sm transition-all duration-200";
-                previewName.className = "editable-preview text-xl font-black text-emerald-900 tracking-widest px-2 py-0.5 rounded-lg transition-all duration-200";
-            } else if (theme === 'theme-blue') {
-                posterContainer.classList.add('border-8', 'border-sky-400');
-                previewTitle.className = "editable-preview text-2xl md:text-3xl font-black text-sky-800 tracking-wider inline-block bg-yellow-100 px-6 py-1.5 rounded-full border-4 border-dashed border-yellow-400 shadow-sm transition-all duration-200";
-                previewName.className = "editable-preview text-xl font-black text-sky-900 tracking-widest px-2 py-0.5 rounded-lg transition-all duration-200";
-            } else if (theme === 'theme-pink') {
-                posterContainer.classList.add('border-8', 'border-pink-400');
-                previewTitle.className = "editable-preview text-2xl md:text-3xl font-black text-pink-800 tracking-wider inline-block bg-yellow-100 px-6 py-1.5 rounded-full border-4 border-dashed border-yellow-400 shadow-sm transition-all duration-200";
-                previewName.className = "editable-preview text-xl font-black text-pink-900 tracking-widest px-2 py-0.5 rounded-lg transition-all duration-200";
-            } else if (theme === 'theme-orange') {
-                posterContainer.classList.add('border-8', 'border-orange-400');
-                previewTitle.className = "editable-preview text-2xl md:text-3xl font-black text-orange-800 tracking-wider inline-block bg-yellow-100 px-6 py-1.5 rounded-full border-4 border-dashed border-yellow-400 shadow-sm transition-all duration-200";
-                previewName.className = "editable-preview text-xl font-black text-orange-900 tracking-widest px-2 py-0.5 rounded-lg transition-all duration-200";
-            }
-            showToast("デザインを切り替えました！");
-        }
-
-        // マークダウン表記やコードブロック付きJSONを安全に除去する関数
-        function cleanJsonString(str) {
-            let cleaned = str.replace(/```json/gi, '').replace(/```/g, '').trim();
-            return cleaned;
-        }
-
-        // Gemini APIを使って自動変換
-        btnGenerate.addEventListener('click', async () => {
-            const memoContent = teacherMemo.value.trim();
-            if (!memoContent) {
-                showToast("指導記録またはメモを入力してください。", "error");
-                return;
-            }
-
-            aiLoading.classList.remove('hidden');
-            btnGenerate.disabled = true;
-
-            const systemPrompt = `あなたは特別支援学校（小・中等部）の教員を支援する専門AIです。
-入力された指導記録や行動メモを元に、児童が自分で読んで達成感を得られるような「がんばったこと」を【必ず3つ】、抽出して分かりやすく作成してください。
-
-【出力要件】
-1. がんばったこと1点目、2点目、3点目の3点のみを抽出し、子ども主体の肯定的な表現にしてください。
-2. 児童自身が理解できるよう、ひらがな・カタカナを多め（漢字にはできるだけ配慮するか、ごく簡単なものに留める）にしてください。
-3. できたことを温かく肯定し、「〜をがんばりました！」「〜できました！」のように明るく元気が出る文体にしてください。
-4. それぞれの項目の文章量は【100字程度】とし、簡潔で分かりやすく要点をまとめてください。児童が読みやすいよう、適宜自然な位置で改行(2〜3行程度)を含めてください。
-5. 出力は必ず以下の形式のJSONにしてください。余計なマークダウン記法、バックトラック、挨拶は含めないでください。
-
-{
-  "point1": "ひらがなでおおきく書いた、1つめのがんばったこと（100文字程度）",
-  "point2": "ひらがなでおおきく書いた、2つめのがんばったこと（100文字程度）",
-  "point3": "ひらがなでおおきく書いた、3つめのがんばったこと（100文字程度）"
-}`;
-
-            try {
-                const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        contents: [{ 
-                            parts: [{ 
-                                text: `以下の指導メモを、特別支援教育の児童向けに「ひらがな多め・自己肯定感がアップする明るい表現」かつ「それぞれ100文字程度」のがんばったこと3点にまとめてJSONで出力してください。\n\nメモ：\n${memoContent}` 
-                            }] 
-                        }],
-                        systemInstruction: { parts: [{ text: systemPrompt }] },
-                        generationConfig: {
-                            responseMimeType: "application/json",
-                            responseSchema: {
-                                type: "OBJECT",
-                                properties: {
-                                    point1: { type: "STRING" },
-                                    point2: { type: "STRING" },
-                                    point3: { type: "STRING" }
-                                },
-                                required: ["point1", "point2", "point3"]
-                            }
-                        }
-                    })
-                });
-
-                const data = await response.json();
-                const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            // テーマ切り替え機能
+            window.changeTheme = function(theme) {
+                posterContainer.className = "print-area poster-preview w-full bg-white rounded-3xl shadow-xl p-4 md:p-6 flex flex-col justify-between transition-all duration-300 relative overflow-hidden";
                 
-                if (resultText) {
-                    const cleanedText = cleanJsonString(resultText);
-                    let parsed;
-                    
+                if (theme === 'theme-green') {
+                    posterContainer.classList.add('border-8', 'border-emerald-400');
+                    previewTitle.className = "editable-preview text-2xl md:text-3xl font-black text-emerald-800 tracking-wider inline-block bg-yellow-100 px-6 py-1.5 rounded-full border-4 border-dashed border-yellow-400 shadow-sm transition-all duration-200";
+                    previewName.className = "editable-preview text-xl font-black text-emerald-900 tracking-widest px-2 py-0.5 rounded-lg transition-all duration-200";
+                } else if (theme === 'theme-blue') {
+                    posterContainer.classList.add('border-8', 'border-sky-400');
+                    previewTitle.className = "editable-preview text-2xl md:text-3xl font-black text-sky-800 tracking-wider inline-block bg-yellow-100 px-6 py-1.5 rounded-full border-4 border-dashed border-yellow-400 shadow-sm transition-all duration-200";
+                    previewName.className = "editable-preview text-xl font-black text-sky-900 tracking-widest px-2 py-0.5 rounded-lg transition-all duration-200";
+                } else if (theme === 'theme-pink') {
+                    posterContainer.classList.add('border-8', 'border-pink-400');
+                    previewTitle.className = "editable-preview text-2xl md:text-3xl font-black text-pink-800 tracking-wider inline-block bg-yellow-100 px-6 py-1.5 rounded-full border-4 border-dashed border-yellow-400 shadow-sm transition-all duration-200";
+                    previewName.className = "editable-preview text-xl font-black text-pink-900 tracking-widest px-2 py-0.5 rounded-lg transition-all duration-200";
+                } else if (theme === 'theme-orange') {
+                    posterContainer.classList.add('border-8', 'border-orange-400');
+                    previewTitle.className = "editable-preview text-2xl md:text-3xl font-black text-orange-800 tracking-wider inline-block bg-yellow-100 px-6 py-1.5 rounded-full border-4 border-dashed border-yellow-400 shadow-sm transition-all duration-200";
+                    previewName.className = "editable-preview text-xl font-black text-orange-900 tracking-widest px-2 py-0.5 rounded-lg transition-all duration-200";
+                }
+                showToast("デザインを切り替えました！");
+            }
+
+            // マークダウン表記やコードブロック付きJSONを安全に除去する関数
+            function cleanJsonString(str) {
+                let cleaned = str.replace(/```json/gi, '').replace(/```/g, '').trim();
+                return cleaned;
+            }
+
+            // ==========================================
+            // プロンプト生成 ＆ クリップボードコピー処理
+            // ==========================================
+            btnCopyPrompt.onclick = function() {
+                const memoContent = teacherMemo.value.trim();
+                if (!memoContent) {
+                    showToast("あらかじめ指導記録を読み込むか、メモを入力してください。", "error");
+                    return;
+                }
+
+                const promptText = `特別支援学校（小・中等部）の児童自身が読んで、自分で「できた！」と達成感を感じられる「がんばったこと」を3つ、以下の指導記録から抽出して作成してください。
+
+【指導記録】
+${memoContent}
+
+【作成ルール】
+1. がんばったこと1点目、2点目、3点目の3点のみを抽出し、子ども主体の表現にしてください。
+2. 児童自身が読めるように、ひらがな・カタカナを多めに、漢字を使う場合は「先生」「学校」「朝」などの簡単なものに限定してください。
+3. 非常に具体的かつ、ポジティブで温かい、ほめる言葉づかいにしてください。
+4. それぞれの項目は【100字程度】にし、2〜3行程度になるよう改行を適宜含めてください。
+5. 出力は「必ず」以下のJSONフォーマットのみにしてください。説明や挨拶などは絶対に含めないでください。
+
+\`\`\`json
+{
+  "point1": "1つめのがんばったこと（100文字程度）",
+  "point2": "2つめのがんばったこと（100文字程度）",
+  "point3": "3つめのがんばったこと（100文字程度）"
+}
+\`\`\``;
+
+                const tempTextArea = document.createElement('textarea');
+                tempTextArea.value = promptText;
+                document.body.appendChild(tempTextArea);
+                tempTextArea.select();
+                
+                try {
+                    const successful = document.execCommand('copy');
+                    if (successful) {
+                        showToast("Geminiへの命令文をコピーしました！");
+                    } else {
+                        throw new Error("コピーに失敗しました");
+                    }
+                } catch (err) {
+                    console.error("Clipboard Copy Error:", err);
+                    showToast("コピーに失敗しました。お手数ですが手動でコピーしてください。", "error");
+                } finally {
+                    document.body.removeChild(tempTextArea);
+                }
+            };
+
+            // ==========================================
+            // 貼り付けられたAIの回答を解析し、ポスターに反映する処理
+            // ==========================================
+            btnApplyAI.onclick = function() {
+                const pastedText = aiResponsePaste.value.trim();
+                if (!pastedText) {
+                    showToast("貼り付けエリアにGeminiの回答を入力してください。", "error");
+                    return;
+                }
+
+                try {
+                    const cleanedText = cleanJsonString(pastedText);
+                    let parsed = null;
+
                     try {
                         parsed = JSON.parse(cleanedText);
-                    } catch (parseErr) {
-                        console.error("JSONパースエラー。正規表現での抽出を試みます:", parseErr);
-                        // 万が一JSONが壊れていた場合の正規表現フォールバック抽出
+                    } catch (e) {
                         const p1Match = cleanedText.match(/"point1"\s*:\s*"([\s\S]*?)"/);
                         const p2Match = cleanedText.match(/"point2"\s*:\s*"([\s\S]*?)"/);
                         const p3Match = cleanedText.match(/"point3"\s*:\s*"([\s\S]*?)"/);
                         
-                        parsed = {
-                            point1: p1Match ? p1Match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"') : "",
-                            point2: p2Match ? p2Match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"') : "",
-                            point3: p3Match ? p3Match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"') : ""
-                        };
+                        if (p1Match || p2Match || p3Match) {
+                            parsed = {
+                                point1: p1Match ? p1Match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').trim() : "",
+                                point2: p2Match ? p2Match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').trim() : "",
+                                point3: p3Match ? p3Match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').trim() : ""
+                            };
+                        }
                     }
-                    
-                    // 値の確実な反映
-                    if (parsed.point1 && parsed.point2 && parsed.point3) {
-                        inputText1.value = parsed.point1;
-                        inputText2.value = parsed.point2;
-                        inputText3.value = parsed.point3;
-                        
-                        previewText1.innerText = parsed.point1;
-                        previewText2.innerText = parsed.point2;
-                        previewText3.innerText = parsed.point3;
 
-                        showToast("Gemini AIが児童向けエピソードを自動作成しました！");
+                    if (parsed && (parsed.point1 || parsed.point2 || parsed.point3)) {
+                        if (parsed.point1) {
+                            inputText1.value = parsed.point1;
+                            previewText1.innerText = parsed.point1;
+                        }
+                        if (parsed.point2) {
+                            inputText2.value = parsed.point2;
+                            previewText2.innerText = parsed.point2;
+                        }
+                        if (parsed.point3) {
+                            inputText3.value = parsed.point3;
+                            previewText3.innerText = parsed.point3;
+                        }
+
+                        showToast("貼り付けられた文章をポスターへ反映しました！");
+                        aiResponsePaste.value = ""; // クリア
                     } else {
-                        throw new Error("解析データが不完全です。");
+                        const paragraphs = pastedText.split(/\n\s*\n|\n(?=[①②③１２３123🔴🔵🟡])/g).filter(p => p.trim().length > 0);
+                        
+                        if (paragraphs.length >= 3) {
+                            inputText1.value = paragraphs[0].trim();
+                            previewText1.innerText = paragraphs[0].trim();
+                            inputText2.value = paragraphs[1].trim();
+                            previewText2.innerText = paragraphs[1].trim();
+                            inputText3.value = paragraphs[2].trim();
+                            previewText3.innerText = paragraphs[2].trim();
+                            showToast("段落分けされたテキストを解析して反映しました！");
+                        } else {
+                            inputText1.value = pastedText;
+                            previewText1.innerText = pastedText;
+                            showToast("ポスターの1番目に文章を反映しました！");
+                        }
                     }
-                } else {
-                    throw new Error("Gemini APIからのレスポンスにコンテンツが含まれていません。");
+                } catch (err) {
+                    console.error("Paste Apply Error:", err);
+                    showToast("テキストの解析に失敗しました。手動で各枠に貼り付けてください。", "error");
                 }
-
-            } catch (err) {
-                console.warn("Gemini呼び出しでエラーが発生したか制限されたため、日本語文字コード対応の自律エンジンで作成します。:", err);
-                
-                const fallbackResult = runOfflineFallbackEngine(memoContent);
-                
-                inputText1.value = fallbackResult.point1;
-                inputText2.value = fallbackResult.point2;
-                inputText3.value = fallbackResult.point3;
-                
-                previewText1.innerText = fallbackResult.point1;
-                previewText2.innerText = fallbackResult.point2;
-                previewText3.innerText = fallbackResult.point3;
-
-                showToast("文字コード調整を行い、3点のがんばったこと（100字エピソード）を自動合成しました！", "success");
-            } finally {
-                aiLoading.classList.add('hidden');
-                btnGenerate.disabled = false;
-            }
-        });
-
-        async function fetchWithRetry(url, options, retries = 5, delay = 1000) {
-            try {
-                const response = await fetch(url, options);
-                if (!response.ok) {
-                    if (retries > 0 && (response.status >= 500 || response.status === 429)) {
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        return fetchWithRetry(url, options, retries - 1, delay * 2);
-                    }
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response;
-            } catch (error) {
-                if (retries > 0) {
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                    return fetchWithRetry(url, options, retries - 1, delay * 2);
-                }
-                throw error;
-            }
-        }
-
-        btnPrint.addEventListener('click', async () => {
-            showToast("PDFポスターデータを作成しています...", "success");
-            
-            if (activeSelectedBox) {
-                activeSelectedBox.classList.remove('ring-4', 'ring-amber-500');
-            }
-
-            const poster = document.getElementById('posterContainer');
-            const childName = inputName.value.trim() || 'kodomo';
-            
-            const options = {
-                scale: 2,
-                useCORS: true,
-                backgroundColor: "#ffffff",
-                logging: false,
-                scrollX: 0,
-                scrollY: 0,
-                windowWidth: document.documentElement.clientWidth,
-                windowHeight: document.documentElement.clientHeight
             };
 
-            try {
-                const canvas = await html2canvas(poster, options);
-                const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: 'a4'
-                });
+            // コピーボタンとWeb版Gemini接続を連動させたイベント登録
+            btnCopyPrompt.addEventListener('click', () => {
+                // 命令文のコピーを実行し、GeminiのWebページを別タブで開く
+                window.open("https://gemini.google.com/", "_blank");
+            });
 
-                pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
-                pdf.save(`がんばったことポスター_${childName}.pdf`);
-                showToast("PDFを正常に作成・保存しました！");
-            } catch (error) {
-                console.error("PDF作成エラー:", error);
-                showToast("PDF自動生成でエラーが発生しました。ブラウザ標準の印刷画面を開きます...", "error");
+            // PDF生成
+            btnPrint.addEventListener('click', async () => {
+                showToast("PDFポスターデータを作成しています...", "success");
                 
-                setTimeout(() => {
-                    window.focus();
-                    window.print();
-                }, 1000);
-            }
+                if (activeSelectedBox) {
+                    activeSelectedBox.classList.remove('ring-4', 'ring-amber-500');
+                }
+
+                const poster = document.getElementById('posterContainer');
+                const childName = inputName.value.trim() || 'kodomo';
+                
+                const options = {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: "#ffffff",
+                    logging: false,
+                    scrollX: 0,
+                    scrollY: 0,
+                    windowWidth: document.documentElement.clientWidth,
+                    windowHeight: document.documentElement.clientHeight
+                };
+
+                try {
+                    const canvas = await html2canvas(poster, options);
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                    
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'mm',
+                        format: 'a4'
+                    });
+
+                    pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+                    pdf.save(`がんばったことポスター_${childName}.pdf`);
+                    showToast("PDFを正常に作成・保存しました！");
+                } catch (error) {
+                    console.error("PDF作成エラー:", error);
+                    showToast("PDF自動生成でエラーが発生しました。ブラウザ標準の印刷画面を開きます...", "error");
+                    
+                    setTimeout(() => {
+                        window.focus();
+                        window.print();
+                    }, 1000);
+                }
+            });
         });
     </script>
 </body>
