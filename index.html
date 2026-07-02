@@ -79,11 +79,13 @@
         .movable-resizable-box {
             position: absolute;
             transition: border-color 0.15s ease, background-color 0.15s ease;
+            cursor: move; /* ドラッグ移動可能であることを示すカーソル */
         }
         .movable-resizable-box:hover {
             border: 2px dashed #f59e0b; /* オレンジの破線 */
-            background-color: rgba(254, 243, 199, 0.2);
+            background-color: rgba(254, 243, 199, 0.15);
         }
+        
         /* 現在選択されている要素を示す枠線 */
         .box-selected {
             border: 2px solid #3b82f6 !important;
@@ -107,7 +109,7 @@
                 <span>がんばったことポスターメーカー</span>
             </h1>
             <p class="text-sm bg-emerald-700 px-3 py-1 rounded-full font-bold">
-                北海道真駒内養護学校
+                真駒内養護学校
             </p>
         </div>
     </header>
@@ -159,7 +161,7 @@
                     <!-- AIローディング表示 -->
                     <div id="aiLoading" class="hidden mt-4 text-center p-3 bg-emerald-50 rounded-2xl border border-emerald-100">
                         <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-emerald-500 border-t-transparent mb-2"></div>
-                        <p class="text-xs text-emerald-700 font-bold">児童向けのやさしい言葉（3つのエピソード）に変換中です...</p>
+                        <p class="text-xs text-emerald-700 font-bold">児童向けのやさしい言葉（3つのエピソード）に変換中です。しばらくお待ちください...</p>
                     </div>
                 </div>
 
@@ -306,10 +308,10 @@
                     <div class="flex flex-col mb-2 no-print gap-1">
                         <span class="text-sm font-bold text-emerald-800 flex items-center gap-1">
                             <i class="fa-solid fa-arrows-up-down-left-right"></i>
-                            <span>ポスタープレビュー（カード枠のドラッグで自由に移動・拡大！）</span>
+                            <span>ポスタープレビュー（カード枠のどこをドラッグしても移動可能！）</span>
                         </span>
                         <span class="text-xs text-emerald-600">
-                            ※ 各カードの左上の<strong>大きなオレンジ色の十字ボタン</strong>をドラッグして移動、右下の矢印ボタンを引っ張って拡大できます。
+                            ※ 各カード内の背景（空白）をドラッグするだけでスイスイ動かせます！文字部分はテキスト編集になり、右下ボタンを引っ張ると拡大します。
                         </span>
                     </div>
 
@@ -341,33 +343,30 @@
                         </div>
 
                         <!-- 自由配置＆自動連動対応のカード表示エリア -->
-                        <div id="cardsArea" class="relative z-10 flex-grow my-2 min-h-[480px]">
+                        <div id="cardsArea" class="relative z-10 flex-grow my-2 min-h-[480px] select-none">
                             
                             <!-- がんばったこと カード1 -->
-                            <div id="card1" class="movable-resizable-box group bg-rose-50/90 rounded-2xl border-4 border-rose-300 shadow-sm overflow-hidden p-3" style="left: 10px; top: 10px; width: 540px; height: 140px;">
-                                <!-- ドラッグ・リサイズ用ハンドル (Windows PC/iPadで確実に動作するよう、常時不透明度を高く設計しw-8 h-8に大型化) -->
-                                <div class="drag-handle move-handle absolute -top-1 -left-1 w-8 h-8 bg-amber-500 hover:bg-amber-600 text-white rounded-full flex items-center justify-center text-sm cursor-move no-print opacity-90 transition-opacity z-40 shadow-lg" title="ここをドラッグして移動">
-                                    <i class="fa-solid fa-arrows-up-down-left-right pointer-events-none"></i>
-                                </div>
+                            <div id="card1" class="movable-resizable-box group bg-rose-50/90 rounded-2xl border-4 border-rose-300 shadow-sm overflow-hidden p-3 select-none" style="left: 10px; top: 10px; width: 540px; height: 140px;">
+                                <!-- リサイズハンドル (移動ハンドルを無くし、カードの背景全体をドラッグ移動エリアにしたため不要になりました) -->
                                 <div class="drag-handle resize-handle absolute -bottom-1 -right-1 w-8 h-8 bg-amber-500 hover:bg-amber-600 text-white rounded-full flex items-center justify-center text-sm cursor-se-resize no-print opacity-90 transition-opacity z-40 shadow-md" title="ここを引っ張ってサイズ変更">
                                     <i class="fa-solid fa-arrows-left-right-to-line rotate-45 pointer-events-none"></i>
                                 </div>
 
-                                <div class="absolute top-0 left-0 bg-rose-400 text-white font-black px-3 py-0.5 rounded-br-xl text-sm z-10 select-none">
+                                <div class="absolute top-0 left-0 bg-rose-400 text-white font-black px-3 py-0.5 rounded-br-xl text-sm z-10 select-none pointer-events-none">
                                     1
                                 </div>
                                 
-                                <!-- 内レイアウト: カード全体のサイズ変更に合わせて自動伸縮するFlex -->
-                                <div class="flex gap-4 w-full h-full pt-3">
+                                <!-- 内レイアウト: カード全体のサイズ変更に合わせて自動伸縮するFlex (固定配置) -->
+                                <div class="flex gap-4 w-full h-full pt-3 pointer-events-none">
                                     <!-- 左: 自動拡張するテキストエリア -->
-                                    <div class="flex-grow h-full flex items-center overflow-hidden">
+                                    <div class="flex-grow h-full flex items-center overflow-hidden pointer-events-auto">
                                         <p id="previewText1" contenteditable="true" class="editable-preview text-sm md:text-base lg:text-lg font-extrabold text-rose-950 leading-relaxed md:leading-loose whitespace-pre-line p-1 rounded-lg transition-all duration-200 w-full h-full overflow-y-auto" title="クリックしてテキストを直接編集">
                                             げきのれんしゅうをがんばりました！
                                             「ノンタンのブランコ」のせりふを、しっかりおぼえて、じぶんのばんでおおきなこえでおはなしできましたね。げきをたのしむすがたは、はなまるでした！
                                         </p>
                                     </div>
                                     <!-- 右: 自動追従する写真エリア (ドラッグ＆ドロップ対応) -->
-                                    <div id="dropZone1" class="drop-zone flex-shrink-0 h-full aspect-video border-4 border-dashed border-rose-200 bg-white rounded-xl overflow-hidden flex items-center justify-center shadow-inner relative" data-index="1">
+                                    <div id="dropZone1" class="drop-zone flex-shrink-0 h-full aspect-video border-4 border-dashed border-rose-200 bg-white rounded-xl overflow-hidden flex items-center justify-center shadow-inner relative pointer-events-auto" data-index="1">
                                         <img id="previewImage1" src="" class="hidden w-full h-full object-cover" />
                                         <div id="imagePlaceholder1" class="text-center p-2 text-rose-300 select-none pointer-events-none">
                                             <i class="fa-solid fa-image text-xl mb-0.5"></i>
@@ -378,26 +377,23 @@
                             </div>
 
                             <!-- がんばったこと カード2 -->
-                            <div id="card2" class="movable-resizable-box group bg-sky-50/90 rounded-2xl border-4 border-sky-300 shadow-sm overflow-hidden p-3" style="left: 10px; top: 165px; width: 540px; height: 140px;">
-                                <div class="drag-handle move-handle absolute -top-1 -left-1 w-8 h-8 bg-amber-500 hover:bg-amber-600 text-white rounded-full flex items-center justify-center text-sm cursor-move no-print opacity-90 transition-opacity z-40 shadow-md" title="ここをドラッグして移動">
-                                    <i class="fa-solid fa-arrows-up-down-left-right pointer-events-none"></i>
-                                </div>
+                            <div id="card2" class="movable-resizable-box group bg-sky-50/90 rounded-2xl border-4 border-sky-300 shadow-sm overflow-hidden p-3 select-none" style="left: 10px; top: 165px; width: 540px; height: 140px;">
                                 <div class="drag-handle resize-handle absolute -bottom-1 -right-1 w-8 h-8 bg-amber-500 hover:bg-amber-600 text-white rounded-full flex items-center justify-center text-sm cursor-se-resize no-print opacity-90 transition-opacity z-40 shadow-md" title="ここを引っ張ってサイズ変更">
                                     <i class="fa-solid fa-arrows-left-right-to-line rotate-45 pointer-events-none"></i>
                                 </div>
 
-                                <div class="absolute top-0 left-0 bg-sky-400 text-white font-black px-3 py-0.5 rounded-br-xl text-sm z-10 select-none">
+                                <div class="absolute top-0 left-0 bg-sky-400 text-white font-black px-3 py-0.5 rounded-br-xl text-sm z-10 select-none pointer-events-none">
                                     2
                                 </div>
 
-                                <div class="flex gap-4 w-full h-full pt-3">
-                                    <div class="flex-grow h-full flex items-center overflow-hidden">
+                                <div class="flex gap-4 w-full h-full pt-3 pointer-events-none">
+                                    <div class="flex-grow h-full flex items-center overflow-hidden pointer-events-auto">
                                         <p id="previewText2" contenteditable="true" class="editable-preview text-sm md:text-base lg:text-lg font-extrabold text-sky-950 leading-relaxed md:leading-loose whitespace-pre-line p-1 rounded-lg transition-all duration-200 w-full h-full overflow-y-auto" title="クリックしてテキストを直接編集">
                                             おんがくのじかんに、がっきのえんそうをがんばりましたね！
                                             進んでがっきをもって、きれいないい音が出せました。あきらめずにさいごまでやりとげて、とってもかっこよかったです！
                                         </p>
                                     </div>
-                                    <div id="dropZone2" class="drop-zone flex-shrink-0 h-full aspect-video border-4 border-dashed border-sky-200 bg-white rounded-xl overflow-hidden flex items-center justify-center shadow-inner relative" data-index="2">
+                                    <div id="dropZone2" class="drop-zone flex-shrink-0 h-full aspect-video border-4 border-dashed border-sky-200 bg-white rounded-xl overflow-hidden flex items-center justify-center shadow-inner relative pointer-events-auto" data-index="2">
                                         <img id="previewImage2" src="" class="hidden w-full h-full object-cover" />
                                         <div id="imagePlaceholder2" class="text-center p-2 text-sky-300 select-none pointer-events-none">
                                             <i class="fa-solid fa-image text-xl mb-0.5"></i>
@@ -408,26 +404,23 @@
                             </div>
 
                             <!-- がんばったこと カード3 -->
-                            <div id="card3" class="movable-resizable-box group bg-amber-50/90 rounded-2xl border-4 border-amber-300 shadow-sm overflow-hidden p-3" style="left: 10px; top: 320px; width: 540px; height: 140px;">
-                                <div class="drag-handle move-handle absolute -top-1 -left-1 w-8 h-8 bg-amber-500 hover:bg-amber-600 text-white rounded-full flex items-center justify-center text-sm cursor-move no-print opacity-90 transition-opacity z-40 shadow-md" title="ここをドラッグして移動">
-                                    <i class="fa-solid fa-arrows-up-down-left-right pointer-events-none"></i>
-                                </div>
+                            <div id="card3" class="movable-resizable-box group bg-amber-50/90 rounded-2xl border-4 border-amber-300 shadow-sm overflow-hidden p-3 select-none" style="left: 10px; top: 320px; width: 540px; height: 140px;">
                                 <div class="drag-handle resize-handle absolute -bottom-1 -right-1 w-8 h-8 bg-amber-500 hover:bg-amber-600 text-white rounded-full flex items-center justify-center text-sm cursor-se-resize no-print opacity-90 transition-opacity z-40 shadow-md" title="ここを引っ張ってサイズ変更">
                                     <i class="fa-solid fa-arrows-left-right-to-line rotate-45 pointer-events-none"></i>
                                 </div>
 
-                                <div class="absolute top-0 left-0 bg-amber-400 text-white font-black px-3 py-0.5 rounded-br-xl text-sm z-10 select-none">
+                                <div class="absolute top-0 left-0 bg-amber-400 text-white font-black px-3 py-0.5 rounded-br-xl text-sm z-10 select-none pointer-events-none">
                                     3
                                 </div>
 
-                                <div class="flex gap-4 w-full h-full pt-3">
-                                    <div class="flex-grow h-full flex items-center overflow-hidden">
+                                <div class="flex gap-4 w-full h-full pt-3 pointer-events-none">
+                                    <div class="flex-grow h-full flex items-center overflow-hidden pointer-events-auto">
                                         <p id="previewText3" contenteditable="true" class="editable-preview text-sm md:text-base lg:text-lg font-extrabold text-amber-950 leading-relaxed md:leading-loose whitespace-pre-line p-1 rounded-lg transition-all duration-200 w-full h-full overflow-y-auto" title="クリックしてテキストを直接編集">
                                             ずこうのじかんに、だいすきなでんしゃのえをかきましたね！
                                             いろんなクレヨンをつかって、カラフルでかっこいいでんしゃをかけました。おともだちに「みせて」といわれて、うれしそうにみせていましたね！
                                         </p>
                                     </div>
-                                    <div id="dropZone3" class="drop-zone flex-shrink-0 h-full aspect-video border-4 border-dashed border-amber-200 bg-white rounded-xl overflow-hidden flex items-center justify-center shadow-inner relative" data-index="3">
+                                    <div id="dropZone3" class="drop-zone flex-shrink-0 h-full aspect-video border-4 border-amber-200 bg-white rounded-xl overflow-hidden flex items-center justify-center shadow-inner relative pointer-events-auto" data-index="3">
                                         <img id="previewImage3" src="" class="hidden w-full h-full object-cover" />
                                         <div id="imagePlaceholder3" class="text-center p-2 text-amber-300 select-none pointer-events-none">
                                             <i class="fa-solid fa-image text-xl mb-0.5"></i>
@@ -441,7 +434,7 @@
 
                         <!-- フッターデザイン -->
                         <div class="relative z-10 flex justify-between items-center text-xs font-bold text-emerald-700 pt-1 border-t border-emerald-100 select-none">
-                            <span id="previewFooter" contenteditable="true" class="editable-preview px-1 rounded transition-all duration-200">真駒内養護学校 まこまない　たろうより</span>
+                            <span id="previewFooter" contenteditable="true" class="editable-preview px-1 rounded transition-all duration-200">特別支援学校 担任より</span>
                             <div class="flex gap-2 text-base select-none">
                                 <span>🌸</span><span>💮</span><span>✨</span>
                             </div>
@@ -636,16 +629,18 @@
         handleImageUpload(imageInput3, previewImage3, imagePlaceholder3);
 
         // ==========================================
-        // ドラッグ移動＆リサイズ機能（頑強なイベントフロー設計）
+        // 背景クリックドラッグ対応の、直感的ドラッグ＆リサイズ処理
         // ==========================================
         function initDragAndResize(boxId) {
             const box = document.getElementById(boxId);
-            const moveHandle = box.querySelector('.move-handle');
             const resizeHandle = box.querySelector('.resize-handle');
             
-            // ボックスクリックで「キーボード操作用アクティブ枠」に登録
+            let isDragging = false;
+            let isResizing = false;
+            let startX, startY, startLeft, startTop, startWidth, startHeight;
+
+            // ボックスクリックでアクティブ枠に設定
             box.addEventListener('mousedown', (e) => {
-                // 既にアクティブなものがあれば枠線を外す
                 if (activeSelectedBox && activeSelectedBox !== box) {
                     activeSelectedBox.classList.remove('ring-4', 'ring-amber-500');
                 }
@@ -653,17 +648,28 @@
                 box.classList.add('ring-4', 'ring-amber-500');
             });
 
-            // ドラッグ移動ロジック
-            moveHandle.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                e.stopPropagation(); // 誤作動防止
+            // カード全体（テキストや写真枠、リサイズつまみ以外の背景領域）でのドラッグ開始処理
+            box.addEventListener('mousedown', (e) => {
+                // 文字編集エリア、写真貼り付けエリア、リサイズハンドルがクリックされた場合はドラッグを無効化
+                if (e.target.closest('.resize-handle') || 
+                    e.target.closest('.editable-preview') || 
+                    e.target.closest('.drop-zone') || 
+                    e.target.closest('button')) {
+                    return; 
+                }
                 
-                const startX = e.clientX;
-                const startY = e.clientY;
-                const startLeft = parseInt(box.style.left) || 0;
-                const startTop = parseInt(box.style.top) || 0;
+                e.preventDefault();
+                isDragging = true;
+                
+                startX = e.clientX;
+                startY = e.clientY;
+                startLeft = parseInt(box.style.left) || 0;
+                startTop = parseInt(box.style.top) || 0;
 
                 const onMouseMove = (moveEvent) => {
+                    if (!isDragging) return;
+                    moveEvent.preventDefault();
+                    
                     const dx = moveEvent.clientX - startX;
                     const dy = moveEvent.clientY - startY;
                     
@@ -680,6 +686,7 @@
                 };
 
                 const onMouseUp = () => {
+                    isDragging = false;
                     document.removeEventListener('mousemove', onMouseMove);
                     document.removeEventListener('mouseup', onMouseUp);
                 };
@@ -688,19 +695,28 @@
                 document.addEventListener('mouseup', onMouseUp);
             });
 
-            // タッチ移動ロジック（iPad / タブレット用）
-            moveHandle.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
+            // タッチ移動ロジック（背景タッチ対応 / iPad用）
+            box.addEventListener('touchstart', (e) => {
+                if (e.target.closest('.resize-handle') || 
+                    e.target.closest('.editable-preview') || 
+                    e.target.closest('.drop-zone') || 
+                    e.target.closest('button')) {
+                    return; 
+                }
+                
+                if (e.cancelable) e.preventDefault();
+                isDragging = true;
                 
                 const touch = e.touches[0];
-                const startX = touch.clientX;
-                const startY = touch.clientY;
-                const startLeft = parseInt(box.style.left) || 0;
-                const startTop = parseInt(box.style.top) || 0;
+                startX = touch.clientX;
+                startY = touch.clientY;
+                startLeft = parseInt(box.style.left) || 0;
+                startTop = parseInt(box.style.top) || 0;
 
                 const onTouchMove = (moveEvent) => {
+                    if (!isDragging) return;
                     if (moveEvent.cancelable) moveEvent.preventDefault();
+                    
                     const curTouch = moveEvent.touches[0];
                     const dx = curTouch.clientX - startX;
                     const dy = curTouch.clientY - startY;
@@ -717,6 +733,7 @@
                 };
 
                 const onTouchEnd = () => {
+                    isDragging = false;
                     document.removeEventListener('touchmove', onTouchMove);
                     document.removeEventListener('touchend', onTouchEnd);
                 };
@@ -731,12 +748,14 @@
                 e.preventDefault();
                 e.stopPropagation();
 
-                const startX = e.clientX;
-                const startY = e.clientY;
-                const startWidth = box.offsetWidth;
-                const startHeight = box.offsetHeight;
+                isResizing = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                startWidth = box.offsetWidth;
+                startHeight = box.offsetHeight;
 
                 const onMouseMove = (moveEvent) => {
+                    if (!isResizing) return;
                     const dx = moveEvent.clientX - startX;
                     const dy = moveEvent.clientY - startY;
                     
@@ -747,14 +766,15 @@
                     let width = startWidth + dx;
                     let height = startHeight + dy;
 
-                    width = Math.max(100, Math.min(width, parent.clientWidth - currentLeft));
-                    height = Math.max(60, Math.min(height, parent.clientHeight - currentTop));
+                    width = Math.max(150, Math.min(width, parent.clientWidth - currentLeft));
+                    height = Math.max(80, Math.min(height, parent.clientHeight - currentTop));
 
                     box.style.width = `${width}px`;
                     box.style.height = `${height}px`;
                 };
 
                 const onMouseUp = () => {
+                    isResizing = false;
                     document.removeEventListener('mousemove', onMouseMove);
                     document.removeEventListener('mouseup', onMouseUp);
                 };
@@ -768,14 +788,17 @@
                 e.preventDefault();
                 e.stopPropagation();
 
+                isResizing = true;
                 const touch = e.touches[0];
-                const startX = touch.clientX;
-                const startY = touch.clientY;
-                const startWidth = box.offsetWidth;
-                const startHeight = box.offsetHeight;
+                startX = touch.clientX;
+                startY = touch.clientY;
+                startWidth = box.offsetWidth;
+                startHeight = box.offsetHeight;
 
                 const onTouchMove = (moveEvent) => {
+                    if (!isResizing) return;
                     if (moveEvent.cancelable) moveEvent.preventDefault();
+                    
                     const curTouch = moveEvent.touches[0];
                     const dx = curTouch.clientX - startX;
                     const dy = curTouch.clientY - startY;
@@ -787,14 +810,15 @@
                     let width = startWidth + dx;
                     let height = startHeight + dy;
 
-                    width = Math.max(100, Math.min(width, parent.clientWidth - currentLeft));
-                    height = Math.max(60, Math.min(height, parent.clientHeight - currentTop));
+                    width = Math.max(150, Math.min(width, parent.clientWidth - currentLeft));
+                    height = Math.max(80, Math.min(height, parent.clientHeight - currentTop));
 
                     box.style.width = `${width}px`;
                     box.style.height = `${height}px`;
                 };
 
                 const onTouchEnd = () => {
+                    isResizing = false;
                     document.removeEventListener('touchmove', onTouchMove);
                     document.removeEventListener('touchend', onTouchEnd);
                 };
@@ -833,7 +857,6 @@
                 left = Math.min(parent.clientWidth - activeSelectedBox.offsetWidth, left + step);
                 e.preventDefault();
             } else if (e.key === 'Escape' || e.key === 'Enter') {
-                // 選択解除
                 activeSelectedBox.classList.remove('ring-4', 'ring-amber-500');
                 activeSelectedBox = null;
             }
@@ -862,18 +885,15 @@
         ];
 
         dropZones.forEach(({ zone, img, placeholder }) => {
-            // ドラッグ侵入時
             zone.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 zone.classList.add('drag-over-effect');
             });
 
-            // ドラッグ離脱時
             zone.addEventListener('dragleave', () => {
                 zone.classList.remove('drag-over-effect');
             });
 
-            // ファイルがドロップされた時
             zone.addEventListener('drop', (e) => {
                 e.preventDefault();
                 zone.classList.remove('drag-over-effect');
@@ -887,14 +907,13 @@
             });
         });
 
-        // クリップボード貼り付け (Ctrl + V) での画像取り込み対応
+        // クリップボード貼り付け (Ctrl + V)
         window.addEventListener('paste', (e) => {
             const items = (e.clipboardData || e.originalEvent.clipboardData).items;
             for (let i = 0; i < items.length; i++) {
                 if (items[i].type.indexOf('image') !== -1) {
                     const file = items[i].getAsFile();
                     
-                    // 現在キーボード等で選択されているカード枠、もしくは空いている1枚目から順に貼る
                     let targetIndex = 1;
                     if (activeSelectedBox) {
                         if (activeSelectedBox.id === 'card2') targetIndex = 2;
@@ -908,7 +927,6 @@
                 }
             }
         });
-
 
         // ==========================================
         // イラスト・スタンプ動的追加システム
@@ -937,10 +955,10 @@
             }
             
             stamp.innerHTML = `
-                <div class="drag-handle move-handle absolute -top-1 -left-1 w-8 h-8 bg-pink-500 text-white rounded-full flex items-center justify-center text-sm cursor-move no-print opacity-90 transition-opacity z-40 shadow" title="うごかす">
+                <div class="drag-handle move-handle absolute -top-3 -left-3 w-8 h-8 bg-pink-500 hover:bg-pink-600 text-white rounded-full flex items-center justify-center text-xs cursor-move no-print opacity-90 transition-opacity z-40 shadow-md" title="うごかす">
                     <i class="fa-solid fa-arrows-up-down-left-right pointer-events-none"></i>
                 </div>
-                <div class="drag-handle resize-handle absolute -bottom-1 -right-1 w-8 h-8 bg-pink-500 text-white rounded-full flex items-center justify-center text-sm cursor-se-resize no-print opacity-90 transition-opacity z-40 shadow" title="おおきさをかえる">
+                <div class="drag-handle resize-handle absolute -bottom-3 -right-3 w-8 h-8 bg-pink-500 hover:bg-pink-600 text-white rounded-full flex items-center justify-center text-xs cursor-se-resize no-print opacity-90 transition-opacity z-40 shadow-md" title="おおきさをかえる">
                     <i class="fa-solid fa-arrows-left-right-to-line rotate-45 pointer-events-none"></i>
                 </div>
                 <button onclick="document.getElementById('${id}').remove()" class="drag-handle absolute -top-3 -right-3 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs no-print opacity-90 transition-opacity z-40 shadow-md" title="けす">
@@ -1101,11 +1119,9 @@
             }
         }
 
-        // 高度なPDF変換処理 (html2canvas & jsPDF)
         btnPrint.addEventListener('click', async () => {
             showToast("PDFポスターデータを作成しています...", "success");
             
-            // 選択枠線を一時的に非表示
             if (activeSelectedBox) {
                 activeSelectedBox.classList.remove('ring-4', 'ring-amber-500');
             }
@@ -1113,9 +1129,8 @@
             const poster = document.getElementById('posterContainer');
             const childName = inputName.value.trim() || 'kodomo';
             
-            // WindowsのDPIスケーリングによるズレを完全に相殺するオプション構成
             const options = {
-                scale: 2, // 2倍スケール（超高画質印刷用）
+                scale: 2,
                 useCORS: true,
                 backgroundColor: "#ffffff",
                 logging: false,
@@ -1141,7 +1156,7 @@
                 showToast("PDFを正常に作成・保存しました！");
             } catch (error) {
                 console.error("PDF作成エラー:", error);
-                showToast("PDF自動生成でエラーが発生しました。ブラウザ標準の印刷画面を開きます...", "error");
+                showToast("PDF自動生成でエラーが発生しました。ブラウザ標準 of 印刷画面を開きます...", "error");
                 
                 setTimeout(() => {
                     window.focus();
